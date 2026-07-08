@@ -5,8 +5,11 @@
  * to forcefully overwrite the garbage Vendor data and inject standardized Tags.
  */
 async function standardizeProduct(product, supplierName, categories = []) {
-    const shopUrl = process.env.SHOPIFY_STORE_DOMAIN;
+    let shopUrl = process.env.SHOPIFY_STORE_DOMAIN || '';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
+
+    // Clean URL in case user added https:// or trailing slashes in Vercel env variables
+    shopUrl = shopUrl.replace(/^https?:\/\//, '').replace(/\/+$/, '');
 
     if (!shopUrl || !accessToken) {
         console.error('[Standardizer] Missing Shopify API credentials in .env file.');

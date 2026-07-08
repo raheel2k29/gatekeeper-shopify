@@ -2,7 +2,8 @@
  * Identifies the dropshipping supplier from the product payload.
  * Pings Shopify Events API if the payload is hidden.
  */
-async function identifySupplier(product, shopUrl, accessToken) {
+async function identifySupplier(product, rawShopUrl, accessToken) {
+    const shopUrl = (rawShopUrl || '').replace(/^https?:\/\//, '').replace(/\/+$/, '');
     let fulfillmentService = null;
 
     if (product.variants && product.variants.length > 0) {
