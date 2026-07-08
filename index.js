@@ -18,9 +18,8 @@ app.post('/webhook/products/create', async (req, res) => {
         return;
     }
     
-    // Dump payload for inspection
-    const fs = require('fs');
-    fs.writeFileSync(`last_payload_${product.id}.json`, JSON.stringify(product, null, 2));
+    // We are on a read-only filesystem in Vercel, so do not write payloads to disk
+    // (You can view payloads in Vercel logs if needed)
 
     console.log(`\n[Gatekeeper] 🚀 Received new product: ${product.title} (ID: ${product.id})`);
 
