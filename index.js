@@ -11,9 +11,7 @@ app.use(express.json());
 
 // Webhook endpoint for product creation
 app.post('/webhook/products/create', async (req, res) => {
-    // Always respond with 200 OK immediately so Shopify doesn't timeout and retry
-    res.status(200).send('Webhook received');
-
+    // Processing begins (Vercel Serverless requires us to wait until finished before sending response)
     const product = req.body;
     
     if (!product || !product.id) {
@@ -42,6 +40,9 @@ app.post('/webhook/products/create', async (req, res) => {
     await standardizeProduct(product, supplierName, categories);
     
     console.log(`[Gatekeeper] ✅ Product processing complete.\n`);
+    
+    // Now that all async work is done, send the response so Vercel can close the function
+    res.status(200).send('Webhook processed');
 });
 
 // Vercel Serverless Export
