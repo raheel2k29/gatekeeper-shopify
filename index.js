@@ -31,9 +31,9 @@ app.post('/webhook/products/create', async (req, res) => {
     );
     console.log(`[Gatekeeper] 🔍 Authentically identified source: ${supplierName}`);
 
-    // Step 2: Categorization Engine
-    const categories = categorizeProduct(product.title, product.body_html || "");
-    console.log(`[Gatekeeper] 🏷️ Auto-Generated Tags: [${categories.join(', ')}]`);
+    // Step 2: AI Categorization Engine
+    const categories = await categorizeProduct(product.title, product.body_html || "");
+    console.log(`[Gatekeeper] 🏷️ AI-Generated Tags: [${categories.join(', ')}]`);
 
     // Step 3: Data Standardization (Fix Vendor & Tags + Inject Categories)
     await standardizeProduct(product, supplierName, categories);

@@ -27,11 +27,8 @@ async function standardizeProduct(product, supplierName, categories = []) {
         console.log('[Standardizer] Unknown supplier, will only push category tags.');
     }
     
-    // Prepare the clean Tags array
-    let existingTags = product.tags ? product.tags.split(',').map(t => t.trim()) : [];
-    
-    // Combine all tags, removing duplicates via Set
-    let finalTagsArray = [...existingTags, ...categories];
+    // We are CLEARCUTTING the original supplier junk tags. We ONLY want the AI categories.
+    let finalTagsArray = [...categories];
     if (sourceTag) finalTagsArray.push(sourceTag);
     
     const cleanTags = Array.from(new Set(finalTagsArray)).join(', ');
