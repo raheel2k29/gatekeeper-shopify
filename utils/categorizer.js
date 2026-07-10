@@ -15,9 +15,12 @@ async function categorizeProduct(title, description) {
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
         const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
+        // Clean HTML tags from the description so the AI only reads pure text
+        const cleanDescription = description.replace(/<[^>]*>?/gm, '').substring(0, 1500);
+
         const prompt = `You are an expert e-commerce product tagger for a Shopify Pet Store.
 I will give you a product title and description.
-You must return exactly 3 to 5 highly relevant, professional category tags for the product.
+You must return exactly 4 to 6 highly relevant, professional category tags for the product.
 Rules:
 1. Always include a top-level animal tag if applicable (e.g., "DOGS", "CATS", "BIRDS").
 2. Include specific niches (e.g. "Grooming", "Medical", "Apparel", "Toys").
@@ -25,7 +28,7 @@ Rules:
 4. Return ONLY a comma-separated list of tags. Do not write any other text.
 
 Product Title: ${title}
-Product Description: ${description.substring(0, 1000)} // Truncate description to save tokens
+Product Description: ${cleanDescription}
 `;
 
         const result = await model.generateContent(prompt);
