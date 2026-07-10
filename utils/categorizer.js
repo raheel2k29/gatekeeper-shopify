@@ -1,4 +1,4 @@
-const { GoogleGenAI } = require('@google/genai');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 /**
  * Auto-Categorization Engine powered by Google Gemini AI
@@ -11,7 +11,10 @@ async function categorizeProduct(title, description) {
             return ["Uncategorized"];
         }
 
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        // Use the official stable v1 SDK instead of the beta SDK
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
         const prompt = `You are an expert e-commerce product tagger for a Shopify Pet Store.
 I will give you a product title and description.
 You must return exactly 3 to 5 highly relevant, professional category tags for the product.
@@ -25,12 +28,10 @@ Product Title: ${title}
 Product Description: ${description.substring(0, 1000)} // Truncate description to save tokens
 `;
 
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.0-flash',
-            contents: prompt,
-        });
-
-        const text = response.text || '';
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text() || '';
+        
         const tags = text.split(',').map(t => t.trim().replace(/^['"]|['"]$/g, '')).filter(t => t.length > 0);
         return tags.length > 0 ? tags : ["Uncategorized"];
 
