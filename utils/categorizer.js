@@ -13,7 +13,7 @@ async function categorizeProduct(title, description) {
 
         // Use the official stable v1 SDK instead of the beta SDK
         const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
 
         const prompt = `You are an expert e-commerce product tagger for a Shopify Pet Store.
 I will give you a product title and description.
