@@ -12,6 +12,10 @@ app.use(express.json());
 // Webhook endpoint for product creation
 app.post('/webhook/products/create', async (req, res) => {
     // Processing begins (Vercel Serverless requires us to wait until finished before sending response)
+    
+    // TEMPORARY PAUSE: Returning 200 instantly so it ignores all incoming products.
+    return res.status(200).send('Gatekeeper is currently paused.');
+
     const product = req.body;
     
     if (!product || !product.id) {
