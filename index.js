@@ -24,6 +24,14 @@ app.post('/webhook/products/create', async (req, res) => {
 
     console.log(`\n[Gatekeeper] 🚀 Received new product: ${product.title} (ID: ${product.id})`);
 
+    // EARLY EXIT: If the product already has a "Source_" tag, it means Gatekeeper 
+    // has already fully processed it. We exit immediately BEFORE calling the Gemini API 
+    // to completely prevent API token waste on inventory syncs and updates.
+    if (product.tags && product.tags.includes('Source_')) {
+        console.log(`[Gatekeeper] ⏭️ Product already processed previously. Skipping API calls to save credits.`);
+        return res.status(200).send('Already processed');
+    }
+
     // Step 1: Authentic Identification
     const supplierName = await identifySupplier(
         product, 
