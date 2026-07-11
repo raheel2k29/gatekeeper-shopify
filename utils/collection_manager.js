@@ -1,4 +1,4 @@
-const fetch = require('node-fetch');
+
 
 /**
  * Manages Shopify Custom Collections and assigns products to them.

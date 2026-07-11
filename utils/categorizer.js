@@ -8,7 +8,7 @@ async function categorizeProduct(title, description) {
     try {
         if (!process.env.GEMINI_API_KEY) {
             console.warn('[Categorizer] Missing GEMINI_API_KEY. Returning fallback tags.');
-            return ["Uncategorized"];
+            return { tags: ["Uncategorized"], category: "Uncategorized" };
         }
 
         // Use the official stable v1 SDK instead of the beta SDK
