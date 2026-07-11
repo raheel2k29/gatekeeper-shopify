@@ -60,7 +60,7 @@ async function standardizeProduct(product, supplierName, categories = [], produc
             throw new Error(`Shopify API error: ${response.status} - ${errorText}`);
         }
 
-        console.log(`[Standardizer] Successfully cleaned Product ${product.id}. Vendor set to: "${cleanVendor}", Tag added: "${sourceTag}"`);
+        console.log(`[Standardizer] Successfully cleaned Product ${product.id}. Vendor set to: "${cleanVendor}"`);
     } catch (error) {
         console.error(`[Standardizer] Failed to update product ${product.id}:`, error.message);
     }
