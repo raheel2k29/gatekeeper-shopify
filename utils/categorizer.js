@@ -20,12 +20,14 @@ async function categorizeProduct(title, description) {
 
         const prompt = `You are an expert e-commerce product tagger for a Shopify Pet Store.
 I will give you a product title and description.
-You must return exactly 4 to 6 highly relevant, professional category tags for the product.
+You must return a raw JSON object with two fields:
+1. "tags": An array of exactly 4 to 6 highly relevant, professional category tags.
+2. "category": A single, broad high-level store collection name (e.g., "Dog Kennels", "Cat Toys", "Pet Grooming", "Aquarium Supplies").
+
 Rules:
-1. Always include a top-level animal tag if applicable (e.g., "DOGS", "CATS", "BIRDS").
-2. Include specific niches (e.g. "Grooming", "Medical", "Apparel", "Toys").
-3. Do NOT use hashtags.
-4. Return ONLY a comma-separated list of tags. Do not write any other text.
+- Always include a top-level animal tag in the tags array if applicable.
+- Do NOT use hashtags.
+- Return ONLY the raw JSON object. Do not wrap it in markdown code blocks. Do not add any other text.
 
 Product Title: ${title}
 Product Description: ${cleanDescription}
@@ -33,14 +35,24 @@ Product Description: ${cleanDescription}
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        const text = response.text() || '';
+        const text = response.text() || '{}';
         
-        const tags = text.split(',').map(t => t.trim().replace(/^['"]|['"]$/g, '')).filter(t => t.length > 0);
-        return tags.length > 0 ? tags : ["Uncategorized"];
+        // Strip markdown code blocks just in case the AI wraps it
+        const cleanJsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        
+        try {
+            const data = JSON.parse(cleanJsonString);
+            const tags = data.tags && Array.isArray(data.tags) ? data.tags : [];
+            const category = data.category || "Uncategorized";
+            return { tags, category };
+        } catch (parseError) {
+            console.error('[Categorizer] Failed to parse AI JSON:', cleanJsonString);
+            return { tags: ["Uncategorized"], category: "Uncategorized" };
+        }
 
     } catch (error) {
         console.error('[Categorizer] Gemini AI Error:', error.message);
-        return ["Uncategorized"]; // Safe fallback
+        return { tags: ["Uncategorized"], category: "Uncategorized" }; // Safe fallback
     }
 }
 

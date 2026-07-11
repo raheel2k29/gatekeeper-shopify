@@ -3,6 +3,7 @@ const express = require('express');
 const { identifySupplier } = require('./utils/identifier');
 const { standardizeProduct } = require('./utils/standardizer');
 const { categorizeProduct } = require('./utils/categorizer');
+const { assignProductToCollection } = require('./utils/collection_manager');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -32,11 +33,23 @@ app.post('/webhook/products/create', async (req, res) => {
     console.log(`[Gatekeeper] 🔍 Authentically identified source: ${supplierName}`);
 
     // Step 2: AI Categorization Engine
-    const categories = await categorizeProduct(product.title, product.body_html || "");
-    console.log(`[Gatekeeper] 🏷️ AI-Generated Tags: [${categories.join(', ')}]`);
+    const aiResult = await categorizeProduct(product.title, product.body_html || "");
+    const tags = aiResult.tags || [];
+    const category = aiResult.category || "Uncategorized";
+    
+    console.log(`[Gatekeeper] 🏷️ AI-Generated Tags: [${tags.join(', ')}]`);
+    console.log(`[Gatekeeper] 📂 AI-Generated Category: ${category}`);
 
-    // Step 3: Data Standardization (Fix Vendor & Tags + Inject Categories)
-    await standardizeProduct(product, supplierName, categories);
+    // Step 3: Data Standardization (Fix Vendor & Tags)
+    await standardizeProduct(product, supplierName, tags);
+    
+    // Step 4: Collection Assignment
+    await assignProductToCollection(
+        product.id,
+        category,
+        process.env.SHOPIFY_STORE_DOMAIN,
+        process.env.SHOPIFY_ACCESS_TOKEN
+    );
     
     console.log(`[Gatekeeper] ✅ Product processing complete.\n`);
     
