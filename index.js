@@ -25,9 +25,10 @@ app.post('/webhook/products/create', async (req, res) => {
     console.log(`\n[Gatekeeper] 🚀 Received new product: ${product.title} (ID: ${product.id})`);
 
     // EARLY EXIT: If the product already has a Product Type that matches one of our 
-    // exact 114 Mega Menu Categories, it means Gatekeeper has already fully processed it.
+    // exact 114 Mega Menu Categories (or it failed and is awaiting manual review), 
+    // it means Gatekeeper has already fully processed it.
     // This allows us to keep tags clean for visitors while preventing infinite API loops.
-    if (product.product_type && MEGA_MENU_CATEGORIES.includes(product.product_type)) {
+    if (product.product_type && (MEGA_MENU_CATEGORIES.includes(product.product_type) || product.product_type === 'Requires Manual Review')) {
         console.log(`[Gatekeeper] ⏭️ Product Type is already "${product.product_type}". Skipping API calls to save credits.`);
         return res.status(200).send('Already processed');
     }

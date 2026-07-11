@@ -49,16 +49,16 @@ Product Description: ${cleanDescription}
         try {
             const data = JSON.parse(cleanJsonString);
             const tags = data.tags && Array.isArray(data.tags) ? data.tags : [];
-            const category = data.category || "Uncategorized";
+            const category = data.category || "Requires Manual Review";
             return { tags, category };
         } catch (parseError) {
             console.error('[Categorizer] Failed to parse AI JSON:', cleanJsonString);
-            return { tags: ["Uncategorized"], category: "Uncategorized" };
+            return { tags: ["Uncategorized"], category: "Requires Manual Review" };
         }
 
     } catch (error) {
         console.error('[Categorizer] Gemini AI Error:', error.message);
-        return { tags: ["Uncategorized"], category: "Uncategorized" }; // Safe fallback
+        return { tags: ["Uncategorized"], category: "Requires Manual Review" }; // Safe fallback
     }
 }
 
