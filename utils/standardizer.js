@@ -18,22 +18,14 @@ async function standardizeProduct(product, supplierName, categories = [], produc
 
     // Prepare the clean Vendor name
     let cleanVendor = product.vendor; // default to original
-    let sourceTag = null;
-
     if (supplierName !== 'Manual Entry / Unknown Source') {
         cleanVendor = supplierName;
-        sourceTag = `Source_${supplierName.replace(/\s+/g, '')}`;
     } else {
         console.log('[Standardizer] Unknown supplier, will only push category tags.');
     }
     
     // We are CLEARCUTTING the original supplier junk tags. We ONLY want the AI categories.
     let finalTagsArray = [...categories];
-    
-    // Add the Source_ tag back so the Early Exit check works!
-    if (sourceTag) {
-        finalTagsArray.push(sourceTag);
-    }
     
     const cleanTags = Array.from(new Set(finalTagsArray)).join(', ');
     

@@ -1,14 +1,3 @@
-require('dotenv').config();
-
-const shopUrl = process.env.SHOPIFY_STORE_DOMAIN.replace(/^https?:\/\//, '').replace(/\/+$/, '');
-const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
-const graphqlUrl = `https://${shopUrl}/admin/api/2026-07/graphql.json`;
-
-const headers = {
-    'X-Shopify-Access-Token': accessToken,
-    'Content-Type': 'application/json'
-};
-
 const MEGA_MENU_CATEGORIES = [
     "Dog Jackets", "Dog Hoodies", "Dog Shirts", "Dog Dresses", "Dog Sweaters", "Dog Sportswear", "Dog Raincoats", "Holiday Apparel",
     "Chew Toys", "Puzzle & Smart Toys", "Balls & Fetch Toys", "Rope & Tug Toys",
@@ -40,65 +29,4 @@ const MEGA_MENU_CATEGORIES = [
     "Organic", "Human-Grade", "Freeze-Dried Raw", "Air-Dried"
 ];
 
-const sleep = ms => new Promise(res => setTimeout(res, ms));
-
-async function createAutomatedCollections() {
-    console.log('[Setup] Starting Automated Collection setup for 94 Mega Menu categories...');
-    let successCount = 0;
-
-    for (const category of MEGA_MENU_CATEGORIES) {
-        console.log(`[Setup] Creating Automated Collection: ${category}`);
-        
-        const mutation = `
-            mutation collectionCreate($input: CollectionInput!) {
-                collectionCreate(input: $input) {
-                    collection {
-                        id
-                    }
-                    userErrors {
-                        field
-                        message
-                    }
-                }
-            }
-        `;
-
-        const variables = {
-            input: {
-                title: category,
-                ruleSet: {
-                    appliedDisjunctively: false, // Match ALL rules
-                    rules: [
-                        {
-                            column: "TYPE",
-                            relation: "EQUALS",
-                            condition: category
-                        }
-                    ]
-                }
-            }
-        };
-
-        const res = await fetch(graphqlUrl, {
-            method: 'POST',
-            headers,
-            body: JSON.stringify({ query: mutation, variables })
-        });
-
-        const json = await res.json();
-        
-        if (json.errors || (json.data && json.data.collectionCreate && json.data.collectionCreate.userErrors.length > 0)) {
-            console.error(`[Setup] Error creating ${category}:`, json.errors || json.data.collectionCreate.userErrors);
-        } else {
-            successCount++;
-        }
-
-        // Sleep to avoid rate limiting
-        await sleep(250);
-    }
-
-    console.log(`\n[Setup] ✅ Successfully created ${successCount} Automated Collections!`);
-    console.log(`[Setup] Remember to manually publish them to the Online Store channel in Shopify Admin if they are hidden.`);
-}
-
-createAutomatedCollections();
+module.exports = { MEGA_MENU_CATEGORIES };

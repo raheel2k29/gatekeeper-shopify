@@ -1,4 +1,5 @@
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { MEGA_MENU_CATEGORIES } = require('./categories');
 
 /**
  * Auto-Categorization Engine powered by Google Gemini AI
@@ -18,36 +19,7 @@ async function categorizeProduct(title, description) {
         // Clean HTML tags from the description so the AI only reads pure text
         const cleanDescription = description.replace(/<[^>]*>?/gm, '').substring(0, 1500);
 
-        const MEGA_MENU_CATEGORIES = [
-            "Dog Jackets", "Dog Hoodies", "Dog Shirts", "Dog Dresses", "Dog Sweaters", "Dog Sportswear", "Dog Raincoats", "Holiday Apparel",
-            "Chew Toys", "Puzzle & Smart Toys", "Balls & Fetch Toys", "Rope & Tug Toys",
-            "Collars (Luxury, Tactical, Spike, GPS)", "Leashes (Standard, Hands-Free, LED)", "Harnesses (No-Pull, Tactical, Service)", "Dog ID Tags", "Dog Tactical Gear", "Dog Glasses", "Boots & Paw Protection",
-            "Training Pads", "Clickers & Reward Tools", "Agility Kits", "Electronic Training Devices",
-            "Orthopedic Beds", "Calming Beds", "Heated & Cooling Beds", "Luxury Sofas", "Convertible Loungers", "Indoor/Outdoor Loungers",
-            "Brushes & Combs", "Shampoos & Conditioners", "Dental Care", "Flea/Tick/Worm Prevention", "Supplements (Joint, Digestive, Skin & Coat)",
-            "Furniture-Style Crates", "Metal & Plastic Kennels", "Insulated Outdoor Houses", "Expandable Playpens",
-            "Carriers & Backpacks", "Cooling Vests", "Seat Belts & Car Safety", "Portable Feeding Gear",
-            "Cat Jackets", "Cat Hoodies", "Cat Dresses", "Cat Shirts",
-            "Cat Laser Toys", "Cat Feather Toys", "Cat Interactive Toys",
-            "Cat Brushes", "Cat Shampoo", "Cat Collars", "Cat Harnesses",
-            "Cat Dry Food", "Cat Wet Food", "Cat Treats",
-            "Cat Trees", "Cat Beds", "Cat Wall Beds",
-            "Cat Carriers", "Cat Backpacks",
-            "Pet Parent Hoodies", "Pet Parent T-Shirts", "Matching Pet + Owner Sets", "Seasonal Apparel",
-            "Pet-Themed Decor", "Pet-Safe Cleaning Products", "Couch Covers", "Anti-Slip Rugs",
-            "Baseball Caps", "Beanies", "Matching Pet + Owner Hats",
-            "Treat Bags", "Walking Bags", "Owner Backpacks",
-            "Custom Pet Name Necklaces", "Paw Print Jewelry", "Photo-Engraved Jewelry", "Memorial Jewelry",
-            "Safety Equipment", "Custom Pet Portraits", "Photo Frames", "Paw Print Kits", "Keepsake Boxes",
-            "Street Hoodies", "Graphic Shirts", "Tactical Vests", "Street Jackets",
-            "Big Spike Collars", "Heavy Chains", "Thick Metal Leashes", "Tactical Harnesses",
-            "Sunglasses", "Hats", "Bandanas", "LED Night Gear",
-            "Muscular-Dog Inspired Gear", "Photo-Ready Street Sets", "Urban Dog Fashion Bundles",
-            "Major Dog Food Brands", "Major Cat Food Brands", 
-            "Grain-Free", "Limited Ingredient", "Hypoallergenic", "Sensitive Stomach", "Weight Management", "Senior Formulas",
-            "High-Protein", "Working Dog Formulas", "Active Lifestyle Blends",
-            "Organic", "Human-Grade", "Freeze-Dried Raw", "Air-Dried"
-        ];
+        // MEGA_MENU_CATEGORIES imported from categories.js
 
         const prompt = `You are an expert e-commerce product tagger for a Shopify Pet Store.
 I will give you a product title and description.
