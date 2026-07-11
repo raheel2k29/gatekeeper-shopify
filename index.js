@@ -43,13 +43,8 @@ app.post('/webhook/products/create', async (req, res) => {
     // Step 3: Data Standardization (Fix Vendor, Tags, and Product Type)
     await standardizeProduct(product, supplierName, tags, category);
     
-    // Step 4: Collection Assignment
-    await assignProductToCollection(
-        product.id,
-        category,
-        process.env.SHOPIFY_STORE_DOMAIN,
-        process.env.SHOPIFY_ACCESS_TOKEN
-    );
+    // Collection Assignment is now perfectly handled by Shopify Native Automated Collections
+    // based on the Product Type we just injected above!
     
     console.log(`[Gatekeeper] ✅ Product processing complete.\n`);
     
