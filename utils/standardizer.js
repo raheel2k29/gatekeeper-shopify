@@ -30,6 +30,11 @@ async function standardizeProduct(product, supplierName, categories = [], produc
     // We are CLEARCUTTING the original supplier junk tags. We ONLY want the AI categories.
     let finalTagsArray = [...categories];
     
+    // Add the Source_ tag back so the Early Exit check works!
+    if (sourceTag) {
+        finalTagsArray.push(sourceTag);
+    }
+    
     const cleanTags = Array.from(new Set(finalTagsArray)).join(', ');
     
     // INFINITE LOOP PROTECTION: Check if it's already updated
