@@ -15,7 +15,7 @@ async function assignProductToCollection(productId, categoryName, shopUrl, acces
         return;
     }
 
-    const baseUrl = `https://${cleanShopUrl}/admin/api/2024-01`;
+    const baseUrl = `https://${cleanShopUrl}/admin/api/2026-07`;
 
     try {
         // Step 1: Check if the custom collection already exists
