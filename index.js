@@ -40,8 +40,8 @@ app.post('/webhook/products/create', async (req, res) => {
     console.log(`[Gatekeeper] 🏷️ AI-Generated Tags: [${tags.join(', ')}]`);
     console.log(`[Gatekeeper] 📂 AI-Generated Category: ${category}`);
 
-    // Step 3: Data Standardization (Fix Vendor & Tags)
-    await standardizeProduct(product, supplierName, tags);
+    // Step 3: Data Standardization (Fix Vendor, Tags, and Product Type)
+    await standardizeProduct(product, supplierName, tags, category);
     
     // Step 4: Collection Assignment
     await assignProductToCollection(

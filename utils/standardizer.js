@@ -4,7 +4,7 @@
  * Takes the cleanly identified supplier name and uses the Shopify API
  * to forcefully overwrite the garbage Vendor data and inject standardized Tags.
  */
-async function standardizeProduct(product, supplierName, categories = []) {
+async function standardizeProduct(product, supplierName, categories = [], productType = "Uncategorized") {
     let shopUrl = process.env.SHOPIFY_STORE_DOMAIN || '';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
@@ -33,7 +33,7 @@ async function standardizeProduct(product, supplierName, categories = []) {
     const cleanTags = Array.from(new Set(finalTagsArray)).join(', ');
     
     // INFINITE LOOP PROTECTION: Check if it's already updated
-    if (product.vendor === cleanVendor && (product.tags || '') === cleanTags) {
+    if (product.vendor === cleanVendor && (product.tags || '') === cleanTags && (product.product_type || '') === productType) {
         console.log('[Standardizer] Product already standardized. Skipping update to prevent loop.');
         return;
     }
@@ -52,7 +52,8 @@ async function standardizeProduct(product, supplierName, categories = []) {
                 product: {
                     id: product.id,
                     vendor: cleanVendor,
-                    tags: cleanTags
+                    tags: cleanTags,
+                    product_type: productType
                 }
             })
         });
