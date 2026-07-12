@@ -33,7 +33,7 @@ You must return a raw JSON object with exactly these 5 fields:
 2. "category": EXACTLY ONE category selected from the Allowed Mega Menu Categories list below. You must NOT invent a new category. Pick the absolute closest match.
 3. "seo_title": A clean, catchy, premium, and SEO-friendly product name. Remove any spammy dropship words.
 4. "seo_description": A persuasive, professional sales description formatted in clean HTML (use <p>, <b>, <ul>, <li>). Do NOT include image tags.
-5. "metafields": An array of objects extracting key product specifications. You must ONLY use the following keys if applicable, do not invent new keys: "disclosures", "key_features", "marketplace_keywords", "safety_notes", "care_instructions", "features", "breed_fit", "size", "color", "material". Format: [{"key": "material", "value": "Plush"}].
+5. "metafields": An array of objects extracting key product specifications. You must ONLY use the following exact keys if applicable, do not invent new keys: "disclosures", "keywords", "safety", "care", "features", "breed_fit", "size", "color", "material". Format: [{"key": "material", "value": "Plush"}].
 
 Allowed Mega Menu Categories:
 ${JSON.stringify(MEGA_MENU_CATEGORIES)}

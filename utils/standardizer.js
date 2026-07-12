@@ -71,14 +71,29 @@ async function standardizeProduct(product, supplierName, categories = [], produc
         if (metafields && metafields.length > 0) {
             const graphqlEndpoint = `https://${shopUrl}/admin/api/2026-07/graphql.json`;
             const productGid = `gid://shopify/Product/${product.id}`;
-            
-            const graphqlMetafields = metafields.map(field => ({
-                ownerId: productGid,
-                namespace: "custom",
-                key: field.key,
-                value: String(field.value),
-                type: "single_line_text_field"
-            }));
+
+            const METAFIELD_DEFS = {
+                material: { namespace: 'pns', type: 'single_line_text_field' },
+                color: { namespace: 'pns', type: 'single_line_text_field' },
+                size: { namespace: 'pns', type: 'single_line_text_field' },
+                breed_fit: { namespace: 'pns', type: 'multi_line_text_field' },
+                features: { namespace: 'pns', type: 'multi_line_text_field' },
+                care: { namespace: 'pns', type: 'multi_line_text_field' },
+                safety: { namespace: 'pns', type: 'multi_line_text_field' },
+                keywords: { namespace: 'pns', type: 'multi_line_text_field' },
+                disclosures: { namespace: 'pns', type: 'multi_line_text_field' }
+            };
+
+            const graphqlMetafields = metafields.map(field => {
+                const def = METAFIELD_DEFS[field.key] || { namespace: 'custom', type: 'single_line_text_field' };
+                return {
+                    ownerId: productGid,
+                    namespace: def.namespace,
+                    key: field.key,
+                    value: String(field.value),
+                    type: def.type
+                };
+            });
 
             const graphqlQuery = `
                 mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
