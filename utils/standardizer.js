@@ -2,9 +2,10 @@
  * standardizer.js
  * 
  * Takes the cleanly identified supplier name and uses the Shopify API
- * to forcefully overwrite the garbage Vendor data and inject standardized Tags.
+ * to forcefully overwrite the garbage Vendor data, inject standardized Tags, 
+ * rewrite SEO titles/descriptions, and push metafields.
  */
-async function standardizeProduct(product, supplierName, categories = [], productType = "Uncategorized") {
+async function standardizeProduct(product, supplierName, categories = [], productType = "Uncategorized", seoTitle = "", seoDescription = "", metafields = []) {
     let shopUrl = process.env.SHOPIFY_STORE_DOMAIN || '';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
@@ -35,6 +36,14 @@ async function standardizeProduct(product, supplierName, categories = [], produc
         return;
     }
     
+    // Prepare Metafields Array
+    const shopifyMetafields = metafields.map(field => ({
+        namespace: "custom",
+        key: field.key,
+        value: String(field.value),
+        type: "single_line_text_field"
+    }));
+
     // API Endpoint for updating the product
     const endpoint = `https://${shopUrl}/admin/api/2026-07/products/${product.id}.json`;
 
@@ -50,7 +59,10 @@ async function standardizeProduct(product, supplierName, categories = [], produc
                     id: product.id,
                     vendor: cleanVendor,
                     tags: cleanTags,
-                    product_type: productType
+                    product_type: productType,
+                    title: seoTitle || product.title,
+                    body_html: seoDescription || product.body_html,
+                    metafields: shopifyMetafields
                 }
             })
         });

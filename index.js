@@ -43,14 +43,12 @@ app.post('/webhook/products/create', async (req, res) => {
 
     // Step 2: AI Categorization Engine
     const aiResult = await categorizeProduct(product.title, product.body_html || "");
-    const tags = aiResult.tags || [];
-    const category = aiResult.category || "Uncategorized";
-    
-    console.log(`[Gatekeeper] 🏷️ AI-Generated Tags: [${tags.join(', ')}]`);
-    console.log(`[Gatekeeper] 📂 AI-Generated Category: ${category}`);
+    const { tags, category, seo_title, seo_description, metafields } = aiResult;
 
-    // Step 3: Data Standardization (Fix Vendor, Tags, and Product Type)
-    await standardizeProduct(product, supplierName, tags, category);
+    console.log(`[Gatekeeper] 🧠 AI Categorization Complete: ${category} | Tags: ${tags.join(', ')}`);
+
+    // 4. STANDARDIZE & CLEAN: Push the new supplier, tags, seo content, and metafields to Shopify
+    await standardizeProduct(product, supplierName, tags, category, seo_title, seo_description, metafields);
     
     // Collection Assignment is now perfectly handled by Shopify Native Automated Collections
     // based on the Product Type we just injected above!
