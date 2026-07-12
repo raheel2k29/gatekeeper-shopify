@@ -36,13 +36,7 @@ async function standardizeProduct(product, supplierName, categories = [], produc
         return;
     }
     
-    // Prepare Metafields Array
-    const shopifyMetafields = metafields.map(field => ({
-        namespace: "custom",
-        key: field.key,
-        value: String(field.value),
-        type: "single_line_text_field"
-    }));
+
 
     // API Endpoint for updating the product
     const endpoint = `https://${shopUrl}/admin/api/2026-07/products/${product.id}.json`;
@@ -61,18 +55,70 @@ async function standardizeProduct(product, supplierName, categories = [], produc
                     tags: cleanTags,
                     product_type: productType,
                     title: seoTitle || product.title,
-                    body_html: seoDescription || product.body_html,
-                    metafields: shopifyMetafields
+                    body_html: seoDescription || product.body_html
                 }
             })
         });
 
         if (!response.ok) {
             const errorText = await response.text();
-            throw new Error(`Shopify API error: ${response.status} - ${errorText}`);
+            throw new Error(`Shopify REST API error: ${response.status} - ${errorText}`);
         }
 
-        console.log(`[Standardizer] Successfully cleaned Product ${product.id}. Vendor set to: "${cleanVendor}"`);
+        console.log(`[Standardizer] Successfully updated Product ${product.id} via REST.`);
+
+        // --- GRAPHQL METAFIELDS INJECTION ---
+        if (metafields && metafields.length > 0) {
+            const graphqlEndpoint = `https://${shopUrl}/admin/api/2026-07/graphql.json`;
+            const productGid = `gid://shopify/Product/${product.id}`;
+            
+            const graphqlMetafields = metafields.map(field => ({
+                ownerId: productGid,
+                namespace: "custom",
+                key: field.key,
+                value: String(field.value),
+                type: "single_line_text_field"
+            }));
+
+            const graphqlQuery = `
+                mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {
+                    metafieldsSet(metafields: $metafields) {
+                        metafields {
+                            id
+                            key
+                            value
+                        }
+                        userErrors {
+                            field
+                            message
+                        }
+                    }
+                }
+            `;
+
+            const gqlResponse = await fetch(graphqlEndpoint, {
+                method: 'POST',
+                headers: {
+                    'X-Shopify-Access-Token': accessToken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    query: graphqlQuery,
+                    variables: { metafields: graphqlMetafields }
+                })
+            });
+
+            const gqlData = await gqlResponse.json();
+            
+            if (gqlData.errors) {
+                console.error(`[Standardizer] GraphQL Error:`, JSON.stringify(gqlData.errors));
+            } else if (gqlData.data?.metafieldsSet?.userErrors?.length > 0) {
+                console.error(`[Standardizer] Metafields UserErrors:`, JSON.stringify(gqlData.data.metafieldsSet.userErrors));
+            } else {
+                console.log(`[Standardizer] Successfully injected ${metafields.length} Metafields via GraphQL.`);
+            }
+        }
+
     } catch (error) {
         console.error(`[Standardizer] Failed to update product ${product.id}:`, error.message);
     }
