@@ -4,6 +4,7 @@ const { identifySupplier } = require('./utils/identifier');
 const { standardizeProduct } = require('./utils/standardizer');
 const { categorizeProduct } = require('./utils/categorizer');
 const { MEGA_MENU_CATEGORIES } = require('./utils/categories');
+const { checkForDuplicate } = require('./utils/duplicate_scanner');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -31,6 +32,33 @@ app.post('/webhook/products/create', async (req, res) => {
     if (product.product_type && (MEGA_MENU_CATEGORIES.includes(product.product_type) || product.product_type === 'Requires Manual Review')) {
         console.log(`[Gatekeeper] ⏭️ Product Type is already "${product.product_type}". Skipping API calls to save credits.`);
         return res.status(200).send('Already processed');
+    }
+
+    // Step 0: Duplicate Catcher
+    const duplicateId = await checkForDuplicate(product);
+    if (duplicateId) {
+        console.log(`[Gatekeeper] 🛑 Duplicate caught! Tagging as Duplicate and hiding in Drafts. Matches Product ID: ${duplicateId}`);
+        try {
+            // Push draft status and tag to Shopify
+            await fetch(`https://${process.env.SHOPIFY_STORE_DOMAIN}/admin/api/2026-07/products/${product.id}.json`, {
+                method: 'PUT',
+                headers: {
+                    'X-Shopify-Access-Token': process.env.SHOPIFY_ACCESS_TOKEN,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    product: {
+                        id: product.id,
+                        status: "draft",
+                        tags: (product.tags ? product.tags + ", " : "") + "Duplicate"
+                    }
+                })
+            });
+            console.log(`[Gatekeeper] ✅ Duplicate successfully hidden. Exiting.`);
+        } catch (e) {
+            console.error(`[Gatekeeper] Error hiding duplicate:`, e);
+        }
+        return res.status(200).send('Duplicate caught');
     }
 
     // Step 1: Authentic Identification
