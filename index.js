@@ -34,8 +34,22 @@ app.post('/webhook/products/create', async (req, res) => {
         return res.status(200).send('Already processed');
     }
 
-    // Step 0: Duplicate Catcher
-    const duplicateId = await checkForDuplicate(product);
+    // Step 1: Authentic Identification
+    const supplierName = await identifySupplier(
+        product, 
+        process.env.SHOPIFY_STORE_DOMAIN, 
+        process.env.SHOPIFY_ACCESS_TOKEN
+    );
+    console.log(`[Gatekeeper] 🔍 Authentically identified source: ${supplierName}`);
+
+    // Step 2: AI Categorization Engine
+    const aiResult = await categorizeProduct(product.title, product.body_html || "");
+    const { core_signature, tags, category, seo_title, seo_description, metafields } = aiResult;
+
+    console.log(`[Gatekeeper] 🧠 AI Categorization Complete: ${category} | Tags: ${tags.join(', ')}`);
+
+    // Step 2.5: AI Signature Duplicate Catcher
+    const duplicateId = await checkForDuplicate(core_signature, product.id);
     if (duplicateId) {
         console.log(`[Gatekeeper] 🛑 Duplicate caught! Tagging as Duplicate and hiding in Drafts. Matches Product ID: ${duplicateId}`);
         try {
@@ -61,22 +75,8 @@ app.post('/webhook/products/create', async (req, res) => {
         return res.status(200).send('Duplicate caught');
     }
 
-    // Step 1: Authentic Identification
-    const supplierName = await identifySupplier(
-        product, 
-        process.env.SHOPIFY_STORE_DOMAIN, 
-        process.env.SHOPIFY_ACCESS_TOKEN
-    );
-    console.log(`[Gatekeeper] 🔍 Authentically identified source: ${supplierName}`);
-
-    // Step 2: AI Categorization Engine
-    const aiResult = await categorizeProduct(product.title, product.body_html || "");
-    const { tags, category, seo_title, seo_description, metafields } = aiResult;
-
-    console.log(`[Gatekeeper] 🧠 AI Categorization Complete: ${category} | Tags: ${tags.join(', ')}`);
-
     // 4. STANDARDIZE & CLEAN: Push the new supplier, tags, seo content, and metafields to Shopify
-    await standardizeProduct(product, supplierName, tags, category, seo_title, seo_description, metafields);
+    await standardizeProduct(product, supplierName, tags, category, seo_title, seo_description, metafields, core_signature);
     
     // Collection Assignment is now perfectly handled by Shopify Native Automated Collections
     // based on the Product Type we just injected above!

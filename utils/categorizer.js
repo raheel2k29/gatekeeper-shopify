@@ -28,12 +28,13 @@ async function categorizeProduct(title, description) {
 
         const prompt = `You are an expert e-commerce product copywriter and tagger for a premium Shopify Pet Store.
 I will give you a product title and a raw description.
-You must return a raw JSON object with exactly these 5 fields:
-1. "tags": An array of exactly 4 to 6 highly relevant, professional category tags. Include a top-level animal tag. Do NOT use hashtags.
-2. "category": EXACTLY ONE category selected from the Allowed Mega Menu Categories list below. You must NOT invent a new category. Pick the absolute closest match.
-3. "seo_title": A clean, catchy, premium, and SEO-friendly product name. Remove any spammy dropship words.
-4. "seo_description": A persuasive, professional sales description formatted in clean HTML (use <p>, <b>, <ul>, <li>). Do NOT include image tags.
-5. "metafields": An array of objects extracting key product specifications. You must ONLY use the following exact keys if applicable, do not invent new keys: "disclosures", "keywords", "safety", "care", "features", "breed_fit", "size", "color", "material". Format: [{"key": "material", "value": "Plush"}].
+You must return a raw JSON object with exactly these 6 fields:
+1. "core_signature": Extract a highly specific 3-to-5 word signature representing the core physical object. Strip away marketing fluff and sizes/colors unless it is a defining physical feature like step count. (e.g., '4 step folding car stairs').
+2. "tags": An array of exactly 4 to 6 highly relevant, professional category tags. Include a top-level animal tag. Do NOT use hashtags.
+3. "category": EXACTLY ONE category selected from the Allowed Mega Menu Categories list below. You must NOT invent a new category. Pick the absolute closest match.
+4. "seo_title": A clean, catchy, premium, and SEO-friendly product name. Remove any spammy dropship words.
+5. "seo_description": A persuasive, professional sales description formatted in clean HTML (use <p>, <b>, <ul>, <li>). Do NOT include image tags.
+6. "metafields": An array of objects extracting key product specifications. You must ONLY use the following exact keys if applicable, do not invent new keys: "disclosures", "keywords", "safety", "care", "features", "breed_fit", "size", "color", "material". Format: [{"key": "material", "value": "Plush"}].
 
 Allowed Mega Menu Categories:
 ${JSON.stringify(MEGA_MENU_CATEGORIES)}
@@ -69,6 +70,7 @@ Product Description: ${cleanDescription}
         
         try {
             const data = JSON.parse(cleanJsonString);
+            const core_signature = data.core_signature || title;
             const tags = data.tags && Array.isArray(data.tags) ? data.tags : [];
             const category = data.category || "Requires Manual Review";
             const seo_title = data.seo_title || title;
@@ -80,15 +82,15 @@ Product Description: ${cleanDescription}
                 seo_description += `\n<br>\n<div class="product-media-gallery">\n${mediaHtml}\n</div>`;
             }
 
-            return { tags, category, seo_title, seo_description, metafields };
+            return { core_signature, tags, category, seo_title, seo_description, metafields };
         } catch (parseError) {
             console.error('[Categorizer] Failed to parse AI JSON:', cleanJsonString);
-            return { tags: ["Uncategorized"], category: "Requires Manual Review", seo_title: title, seo_description: description, metafields: [] };
+            return { core_signature: title, tags: ["Uncategorized"], category: "Requires Manual Review", seo_title: title, seo_description: description, metafields: [] };
         }
 
     } catch (error) {
         console.error('[Categorizer] Gemini AI Error:', error.message);
-        return { tags: ["Uncategorized"], category: "Requires Manual Review", seo_title: title, seo_description: description, metafields: [] }; // Safe fallback
+        return { core_signature: title, tags: ["Uncategorized"], category: "Requires Manual Review", seo_title: title, seo_description: description, metafields: [] }; // Safe fallback
     }
 }
 

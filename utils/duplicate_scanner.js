@@ -1,65 +1,27 @@
 /**
  * duplicate_scanner.js
  * 
- * Uses a Fuzzy Text Match (Dice Coefficient) to compare incoming products
- * against the 'OriginalTitle' fingerprints hidden in existing products.
+ * Uses the AI-generated Core Signature to find exact duplicate products.
  */
 
-// Calculates the similarity between two strings (0.0 to 1.0)
-function diceCoefficient(target, string) {
-    if (target === string) return 1;
-    if (target.length < 2 || string.length < 2) return 0;
+async function checkForDuplicate(core_signature, incomingProductId) {
+    if (!core_signature || core_signature.length < 3) return null;
 
-    let targetBigrams = new Map();
-    for (let i = 0; i < target.length - 1; i++) {
-        const bigram = target.substring(i, i + 2).toLowerCase();
-        const count = targetBigrams.has(bigram) ? targetBigrams.get(bigram) + 1 : 1;
-        targetBigrams.set(bigram, count);
-    }
-
-    let intersectionSize = 0;
-    for (let i = 0; i < string.length - 1; i++) {
-        const bigram = string.substring(i, i + 2).toLowerCase();
-        const count = targetBigrams.has(bigram) ? targetBigrams.get(bigram) : 0;
-        if (count > 0) {
-            targetBigrams.set(bigram, count - 1);
-            intersectionSize++;
-        }
-    }
-
-    return (2.0 * intersectionSize) / (target.length + string.length - 2);
-}
-
-// Cleans a title for word extraction
-function getKeywords(title) {
-    const cleanTitle = title.replace(/[^a-zA-Z0-9\s]/g, '');
-    const words = cleanTitle.split(/\s+/).filter(w => w.length > 3);
-    // Sort by length descending, pick top 3
-    words.sort((a, b) => b.length - a.length);
-    return words.slice(0, 3);
-}
-
-/**
- * Searches the store for a duplicate product
- * Returns the duplicate's ID if found, otherwise null.
- */
-async function checkForDuplicate(incomingProduct) {
     let shopUrl = process.env.SHOPIFY_STORE_DOMAIN || '';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
     shopUrl = shopUrl.replace(/^https?:\/\//, '').replace(/\/+$/, '');
 
     if (!shopUrl || !accessToken) return null;
 
-    const keywords = getKeywords(incomingProduct.title);
-    if (keywords.length === 0) return null; // Title too short to search reliably
+    // Clean the signature to ensure consistent matching
+    const cleanSignature = core_signature.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '');
+    const searchTag = `Signature:${cleanSignature}`;
 
-    // Build query: "keyword1 OR keyword2 OR keyword3"
-    const searchQuery = keywords.join(' OR ');
-
+    // Query Shopify for any product containing this exact Signature tag
     const graphqlEndpoint = `https://${shopUrl}/admin/api/2026-07/graphql.json`;
     const graphqlQuery = `
         query searchDuplicates($query: String!) {
-            products(first: 20, query: $query) {
+            products(first: 5, query: $query) {
                 edges {
                     node {
                         id
@@ -80,7 +42,8 @@ async function checkForDuplicate(incomingProduct) {
             },
             body: JSON.stringify({
                 query: graphqlQuery,
-                variables: { query: searchQuery }
+                // Shopify GraphQL query syntax for tag: tag:"Signature:folding car dog stairs"
+                variables: { query: `tag:"${searchTag}"` }
             })
         });
 
@@ -95,32 +58,18 @@ async function checkForDuplicate(incomingProduct) {
         
         for (const edge of edges) {
             const existingNode = edge.node;
-            const existingIdNum = existingNode.id.split('/').pop(); // "gid://shopify/Product/123" -> "123"
+            const existingIdNum = existingNode.id.split('/').pop(); 
             
             // Skip the product we are currently evaluating!
-            if (String(existingIdNum) === String(incomingProduct.id)) {
+            if (String(existingIdNum) === String(incomingProductId)) {
                 continue;
             }
 
-            // Find the OriginalTitle fingerprint in the tags
+            // Verify the tag actually exists exactly (just in case GraphQL fuzzy matched)
             const tags = existingNode.tags || [];
-            const originalTitleTag = tags.find(t => t.startsWith('OriginalTitle:'));
-            
-            let targetTitle = '';
-            if (originalTitleTag) {
-                targetTitle = originalTitleTag.replace('OriginalTitle:', '').trim();
-            } else {
-                // Fallback for older products before we implemented this
-                targetTitle = existingNode.title || '';
-            }
-
-            // Calculate similarity between the incoming title and the target fingerprint
-            const similarity = diceCoefficient(incomingProduct.title.toLowerCase(), targetTitle.toLowerCase());
-            
-            if (similarity > 0.85) {
-                console.log(`[DuplicateScanner] 🚨 Duplicate Found! Similarity: ${(similarity * 100).toFixed(1)}%`);
-                console.log(`[DuplicateScanner] Incoming: "${incomingProduct.title}"`);
-                console.log(`[DuplicateScanner] Existing: "${targetTitle}" (ID: ${existingIdNum})`);
+            if (tags.includes(searchTag)) {
+                console.log(`[DuplicateScanner] 🚨 Duplicate Found via AI Signature: "${cleanSignature}"`);
+                console.log(`[DuplicateScanner] Matches existing product ID: ${existingIdNum}`);
                 return existingIdNum; // Duplicate found!
             }
         }

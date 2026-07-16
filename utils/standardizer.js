@@ -5,7 +5,7 @@
  * to forcefully overwrite the garbage Vendor data, inject standardized Tags, 
  * rewrite SEO titles/descriptions, and push metafields.
  */
-async function standardizeProduct(product, supplierName, categories = [], productType = "Uncategorized", seoTitle = "", seoDescription = "", metafields = []) {
+async function standardizeProduct(product, supplierName, categories = [], productType = "Uncategorized", seoTitle = "", seoDescription = "", metafields = [], coreSignature = "") {
     let shopUrl = process.env.SHOPIFY_STORE_DOMAIN || '';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
 
@@ -28,9 +28,11 @@ async function standardizeProduct(product, supplierName, categories = [], produc
     // We are CLEARCUTTING the original supplier junk tags. We ONLY want the AI categories.
     let finalTagsArray = [...categories];
     
-    // Add the Original Title as a hidden fingerprint tag for the Duplicate Catcher
-    const rawTitleTag = `OriginalTitle:${product.title.replace(/,/g, '')}`;
-    finalTagsArray.push(rawTitleTag);
+    // Add the AI Fingerprint as a hidden tag for the Duplicate Catcher
+    if (coreSignature && coreSignature.length > 2) {
+        const cleanSignature = coreSignature.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '');
+        finalTagsArray.push(`Signature:${cleanSignature}`);
+    }
 
     const cleanTags = Array.from(new Set(finalTagsArray)).join(', ');
     
