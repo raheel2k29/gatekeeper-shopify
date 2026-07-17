@@ -34,6 +34,12 @@ app.post('/webhook/products/create', async (req, res) => {
         return res.status(200).send('Already processed');
     }
 
+    // Step 0: Filter out products that have already been processed to prevent infinite loops!
+    if (product.tags && (product.tags.includes('Signature:') || product.tags.includes('Duplicate'))) {
+        console.log('[Gatekeeper] Product already processed (Signature/Duplicate tag found). Exiting to prevent infinite loop.');
+        return res.status(200).send('Already processed');
+    }
+
     // Step 1: Authentic Identification
     const supplierName = await identifySupplier(
         product, 
