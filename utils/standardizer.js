@@ -35,38 +35,58 @@ async function standardizeProduct(product, supplierName, categories = [], produc
     }
 
     const cleanTags = Array.from(new Set(finalTagsArray)).join(', ');
-    
+
+    // The ultimate SEO cache to protect against dropship apps overwriting our data
+    const seoCache = {
+        title: seoTitle || product.title,
+        body_html: seoDescription || product.body_html,
+        tags: cleanTags,
+        vendor: cleanVendor,
+        product_type: productType
+    };
+
     // INFINITE LOOP PROTECTION: Check if it's already updated
     if (product.vendor === cleanVendor && (product.tags || '') === cleanTags && (product.product_type || '') === productType) {
         console.log('[Standardizer] Product already standardized. Skipping update to prevent loop.');
         return;
     }
     
-
-
-    // API Endpoint for updating the product
-    const endpoint = `https://${shopUrl}/admin/api/2026-07/products/${product.id}.json`;
-
     try {
-        const response = await fetch(endpoint, {
+        console.log(`[Standardizer] Pushing clean tags, SEO content, and injecting ${metafields.length + 1} metafields to Shopify for Product ${product.id}...`);
+        
+        // Prepare the base payload
+        const payload = {
+            product: {
+                id: product.id,
+                vendor: cleanVendor,
+                tags: cleanTags,
+                product_type: productType,
+                title: seoTitle || product.title,
+                body_html: seoDescription || product.body_html,
+                metafields: [
+                    {
+                        namespace: 'gatekeeper',
+                        key: 'seo_cache',
+                        value: JSON.stringify(seoCache),
+                        type: 'json'
+                    }
+                ]
+            }
+        };
+
+        // Add UI metafields
+        if (metafields && Array.isArray(metafields)) {
+            payload.product.metafields.push(...metafields);
+        }
+
+        const response = await fetch(`https://${process.env.SHOPIFY_STORE_DOMAIN}/admin/api/2026-07/products/${product.id}.json`, {
             method: 'PUT',
             headers: {
-                'X-Shopify-Access-Token': accessToken,
+                'X-Shopify-Access-Token': process.env.SHOPIFY_ACCESS_TOKEN,
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({
-                product: {
-                    id: product.id,
-                    vendor: cleanVendor,
-                    tags: cleanTags,
-                    product_type: productType,
-                    title: seoTitle || product.title,
-                    body_html: seoDescription || product.body_html
-                }
-            })
-        });
-
-        if (!response.ok) {
+            body: JSON.stringify(payload)
+        }); if (!response.ok) {
             const errorText = await response.text();
             throw new Error(`Shopify REST API error: ${response.status} - ${errorText}`);
         }

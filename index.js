@@ -35,8 +35,61 @@ app.post('/webhook/products/create', async (req, res) => {
     }
 
     // Step 0: Filter out products that have already been processed to prevent infinite loops!
+    // NEW UNKILLABLE SEO BODYGUARD LOGIC
+    try {
+        const metafieldsRes = await fetch(`https://${process.env.SHOPIFY_STORE_DOMAIN}/admin/api/2026-07/products/${product.id}/metafields.json`, {
+            headers: { 'X-Shopify-Access-Token': process.env.SHOPIFY_ACCESS_TOKEN }
+        });
+        const metafieldsData = await metafieldsRes.json();
+        
+        if (metafieldsData && metafieldsData.metafields) {
+            const cacheMetafield = metafieldsData.metafields.find(m => m.namespace === 'gatekeeper' && m.key === 'seo_cache');
+            
+            if (cacheMetafield) {
+                const cache = JSON.parse(cacheMetafield.value);
+                
+                // Compare critical SEO fields (sorting tags to prevent Shopify alphabetical ordering loops)
+                const titleMatches = product.title === cache.title;
+                const sortTags = (t) => (t || '').split(',').map(s=>s.trim()).sort().join(',');
+                const tagsMatch = sortTags(product.tags) === sortTags(cache.tags);
+                
+                if (titleMatches && tagsMatch) {
+                    console.log('[Gatekeeper] 🛡️ Product matches Metafield Vault. Already fully optimized. Exiting.');
+                    return res.status(200).send('Matches Vault');
+                } else {
+                    console.log('[Gatekeeper] 🚨 Supplier overwrite detected! Bypassing AI and restoring from Metafield Vault!');
+                    
+                    // Restore from cache directly!
+                    await fetch(`https://${process.env.SHOPIFY_STORE_DOMAIN}/admin/api/2026-07/products/${product.id}.json`, {
+                        method: 'PUT',
+                        headers: {
+                            'X-Shopify-Access-Token': process.env.SHOPIFY_ACCESS_TOKEN,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            product: {
+                                id: product.id,
+                                title: cache.title,
+                                body_html: cache.body_html,
+                                tags: cache.tags,
+                                vendor: cache.vendor,
+                                product_type: cache.product_type
+                            }
+                        })
+                    });
+                    
+                    console.log('[Gatekeeper] 🛡️ Vault restoration complete.');
+                    return res.status(200).send('Restored from Vault');
+                }
+            }
+        }
+    } catch (e) {
+        console.error('[Gatekeeper] Error checking metafield cache:', e);
+    }
+
+    // Fallback: If no cache exists, but we see the Signature tag, we still exit
     if (product.tags && (product.tags.includes('Signature:') || product.tags.includes('Duplicate'))) {
-        console.log('[Gatekeeper] Product already processed (Signature/Duplicate tag found). Exiting to prevent infinite loop.');
+        console.log('[Gatekeeper] Product already processed (Signature/Duplicate tag found but no cache). Exiting.');
         return res.status(200).send('Already processed');
     }
 
