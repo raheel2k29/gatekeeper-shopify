@@ -106,6 +106,15 @@ async function checkForDuplicate(core_signature, incomingProductId) {
             if (sigTag) {
                 const targetSignature = sigTag.replace('Signature:', '').trim();
                 
+                // Strict Number Check: If the sizes/numbers don't perfectly match (e.g. 67 vs 71), it's a different product!
+                const sourceNumbers = (cleanSignature.match(/\d+/g) || []).sort().join(',');
+                const targetNumbers = (targetSignature.match(/\d+/g) || []).sort().join(',');
+
+                if (sourceNumbers !== targetNumbers) {
+                    console.log(`[DuplicateScanner] Skipping due to number mismatch: ${sourceNumbers} vs ${targetNumbers}`);
+                    continue; 
+                }
+
                 // Compare the two AI signatures
                 const similarity = diceCoefficient(cleanSignature, targetSignature);
                 
