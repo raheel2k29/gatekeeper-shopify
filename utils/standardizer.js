@@ -68,15 +68,21 @@ async function standardizeProduct(product, supplierName, categories = [], produc
                         namespace: 'gatekeeper',
                         key: 'seo_cache',
                         value: JSON.stringify(seoCache),
-                        type: 'json'
+                        type: 'multi_line_text_field'
                     }
                 ]
             }
         };
 
-        // Add UI metafields
+        // Add UI metafields with proper Shopify schema to prevent 422 API errors
         if (metafields && Array.isArray(metafields)) {
-            payload.product.metafields.push(...metafields);
+            const formattedMetafields = metafields.map(m => ({
+                namespace: 'custom',
+                key: m.key || 'unknown',
+                value: String(m.value || ''),
+                type: 'single_line_text_field'
+            }));
+            payload.product.metafields.push(...formattedMetafields);
         }
 
         const response = await fetch(`https://${process.env.SHOPIFY_STORE_DOMAIN}/admin/api/2026-07/products/${product.id}.json`, {
