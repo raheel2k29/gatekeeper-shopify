@@ -29,7 +29,7 @@ async function categorizeProduct(title, description) {
         const prompt = `You are an expert e-commerce product copywriter and tagger for a premium Shopify Pet Store.
 I will give you a product title and a raw description.
 You must return a raw JSON object with exactly these 6 fields:
-1. "core_signature": Extract a highly specific 3-to-5 word signature representing the core physical object. Strip away marketing fluff and sizes/colors unless it is a defining physical feature like step count. (e.g., '4 step folding car stairs').
+1. "core_signature": Extract a highly specific 3-to-6 word signature representing the core physical object. You MUST include distinguishing features like emitter count, size, weight, material, or color if they define the product as a unique variation. Do not strip these out! (e.g., '4-emitter ultrasonic bark deterrent', 'blue silicone grooming glove').
 2. "tags": An array of exactly 4 to 6 highly relevant, professional category tags. Include a top-level animal tag. Do NOT use hashtags.
 3. "category": EXACTLY ONE category selected from the Allowed Mega Menu Categories list below. You must NOT invent a new category. Pick the absolute closest match.
 4. "seo_title": A clean, catchy, premium, and SEO-friendly product name. Remove any spammy dropship words.
