@@ -35,6 +35,7 @@ You must return a raw JSON object with exactly these 6 fields:
 4. "seo_title": A clean, catchy, premium, and SEO-friendly product name. Remove any spammy dropship words.
 5. "seo_description": A persuasive, professional sales description formatted in clean HTML (use <p>, <b>, <ul>, <li>). Do NOT include image tags.
 6. "metafields": An array of objects extracting key product specifications. You must ONLY use the following exact keys if applicable, do not invent new keys: "disclosures", "keywords", "safety", "care", "features", "breed_fit", "size", "color", "material". Format: [{"key": "material", "value": "Plush"}].
+   - CRITICAL Size Rule: In the "size" metafield, you MUST always output both US Imperial and Metric dimensions together, listing the US Imperial value first (e.g., '23.6" / 60 cm', '9" / 22.8 cm'). Convert units if only one is provided by the supplier.
 
 Allowed Mega Menu Categories:
 ${JSON.stringify(MEGA_MENU_CATEGORIES)}
