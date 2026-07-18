@@ -108,7 +108,7 @@ app.post('/webhook/products/create', async (req, res) => {
     console.log(`[Gatekeeper] 🧠 AI Categorization Complete: ${category} | Tags: ${tags.join(', ')}`);
 
     // Step 2.5: AI Signature Duplicate Catcher
-    const duplicateId = await checkForDuplicate(core_signature, product.id);
+    const duplicateId = await checkForDuplicate(core_signature, product);
     if (duplicateId) {
         console.log(`[Gatekeeper] 🛑 Duplicate caught! Tagging as Duplicate and hiding in Drafts. Matches Product ID: ${duplicateId}`);
         try {

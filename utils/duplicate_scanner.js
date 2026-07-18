@@ -1,8 +1,24 @@
-/**
- * duplicate_scanner.js
- * 
- * Uses the AI-generated Core Signature and fuzzy matching to find exact duplicate products.
- */
+const { GoogleGenAI } = require('@google/genai');
+
+// Downloads an image and converts it to Gemini's inlineData format
+async function fetchImageBase64(url) {
+    if (!url) return null;
+    try {
+        const response = await fetch(url);
+        if (!response.ok) return null;
+        const arrayBuffer = await response.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+        return {
+            inlineData: {
+                data: buffer.toString("base64"),
+                mimeType: response.headers.get("content-type") || "image/jpeg"
+            }
+        };
+    } catch (e) {
+        console.error("[DuplicateScanner] Failed to fetch image:", url, e.message);
+        return null;
+    }
+}
 
 // Calculates the similarity between two strings (0.0 to 1.0)
 function diceCoefficient(target, string) {
@@ -37,14 +53,15 @@ function getKeywords(title) {
     return words.slice(0, 3);
 }
 
-async function checkForDuplicate(core_signature, incomingProductId) {
+async function checkForDuplicate(core_signature, product) {
+    const incomingProductId = product.id;
     if (!core_signature || core_signature.length < 3) return null;
 
     let shopUrl = process.env.SHOPIFY_STORE_DOMAIN || '';
     const accessToken = process.env.SHOPIFY_ACCESS_TOKEN;
     shopUrl = shopUrl.replace(/^https?:\/\//, '').replace(/\/+$/, '');
 
-    if (!shopUrl || !accessToken) return null;
+    if (!shopUrl || !accessToken || !process.env.GEMINI_API_KEY) return null;
 
     const cleanSignature = core_signature.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '');
     const keywords = getKeywords(cleanSignature);
@@ -62,6 +79,9 @@ async function checkForDuplicate(core_signature, incomingProductId) {
                         id
                         tags
                         title
+                        featuredImage {
+                            url
+                        }
                     }
                 }
             }
@@ -118,13 +138,49 @@ async function checkForDuplicate(core_signature, incomingProductId) {
                 // Compare the two AI signatures
                 const similarity = diceCoefficient(cleanSignature, targetSignature);
                 
-                // Because AI signatures are highly stripped and specific (e.g. "silent dog training whistle")
-                // an 80% match means they are definitively the same object.
+                // 1. Text match is highly identical - Duplicate confirmed (Fast & Free)
                 if (similarity > 0.80) {
-                    console.log(`[DuplicateScanner] 🚨 Duplicate Found! Similarity: ${(similarity * 100).toFixed(1)}%`);
-                    console.log(`[DuplicateScanner] Incoming Signature: "${cleanSignature}"`);
-                    console.log(`[DuplicateScanner] Existing Signature: "${targetSignature}" (ID: ${existingIdNum})`);
-                    return existingIdNum; // Duplicate found!
+                    console.log(`[DuplicateScanner] 🚨 Duplicate Found via Text Similarity: ${(similarity * 100).toFixed(1)}%`);
+                    return existingIdNum;
+                }
+
+                // 2. Doubt Zone: Similarity is high enough to be suspicious (e.g. 35%-80%), trigger Vision AI to compare images
+                if (similarity > 0.35) {
+                    const existingImageUrl = existingNode.featuredImage?.url;
+                    const incomingImageUrl = product.image?.src || (product.images && product.images[0]?.src);
+
+                    if (incomingImageUrl && existingImageUrl) {
+                        console.log(`[DuplicateScanner] 👁️ Suspicious match inside Doubt Zone (${(similarity * 100).toFixed(1)}%). Triggering Vision AI to compare images...`);
+                        
+                        const img1 = await fetchImageBase64(incomingImageUrl);
+                        const img2 = await fetchImageBase64(existingImageUrl);
+
+                        if (img1 && img2) {
+                            try {
+                                const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+                                const response = await ai.models.generateContent({
+                                    model: 'gemini-3.5-flash',
+                                    contents: [
+                                        "You are an expert e-commerce duplicate detection system. Look at these two images. Are they selling the exact same physical wholesale item? Ignore model context, dog posture, or minor variant differences (like size or color), but pay attention to structural difference. If they are the same physical item, reply with ONLY the word: DUPLICATE. If they are structurally different items, reply with ONLY the word: UNIQUE.",
+                                        "Image A:",
+                                        img1,
+                                        "Image B:",
+                                        img2
+                                    ]
+                                });
+
+                                const decision = (response.text || '').trim().toUpperCase();
+                                console.log(`[DuplicateScanner] 🧠 Vision AI Judge Decision: ${decision}`);
+
+                                if (decision === 'DUPLICATE') {
+                                    console.log(`[DuplicateScanner] 🚨 Duplicate confirmed by Vision AI!`);
+                                    return existingIdNum;
+                                }
+                            } catch (aiError) {
+                                console.error('[DuplicateScanner] Vision AI Judge failed:', aiError.message);
+                            }
+                        }
+                    }
                 }
             }
         }
