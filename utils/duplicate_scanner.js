@@ -1,25 +1,5 @@
 const { GoogleGenAI } = require('@google/genai');
 
-// Downloads an image and converts it to Gemini's inlineData format
-async function fetchImageBase64(url) {
-    if (!url) return null;
-    try {
-        const response = await fetch(url);
-        if (!response.ok) return null;
-        const arrayBuffer = await response.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        return {
-            inlineData: {
-                data: buffer.toString("base64"),
-                mimeType: response.headers.get("content-type") || "image/jpeg"
-            }
-        };
-    } catch (e) {
-        console.error("[DuplicateScanner] Failed to fetch image:", url, e.message);
-        return null;
-    }
-}
-
 // Calculates the similarity between two strings (0.0 to 1.0)
 function diceCoefficient(target, string) {
     if (target === string) return 1;
@@ -79,9 +59,7 @@ async function checkForDuplicate(core_signature, product) {
                         id
                         tags
                         title
-                        featuredImage {
-                            url
-                        }
+                        description
                     }
                 }
             }
@@ -110,6 +88,9 @@ async function checkForDuplicate(core_signature, product) {
 
         const edges = data.data?.products?.edges || [];
         
+        let highestSimilarity = 0;
+        let bestCandidate = null;
+
         for (const edge of edges) {
             const existingNode = edge.node;
             const existingIdNum = existingNode.id.split('/').pop(); 
@@ -131,7 +112,6 @@ async function checkForDuplicate(core_signature, product) {
                 const targetNumbers = (targetSignature.match(/\d+/g) || []).sort().join(',');
 
                 if (sourceNumbers !== targetNumbers) {
-                    console.log(`[DuplicateScanner] Skipping due to number mismatch: ${sourceNumbers} vs ${targetNumbers}`);
                     continue; 
                 }
 
@@ -144,44 +124,53 @@ async function checkForDuplicate(core_signature, product) {
                     return existingIdNum;
                 }
 
-                // 2. Doubt Zone: Similarity is high enough to be suspicious (e.g. 35%-80%), trigger Vision AI to compare images
-                if (similarity > 0.35) {
-                    const existingImageUrl = existingNode.featuredImage?.url;
-                    const incomingImageUrl = product.image?.src || (product.images && product.images[0]?.src);
-
-                    if (incomingImageUrl && existingImageUrl) {
-                        console.log(`[DuplicateScanner] 👁️ Suspicious match inside Doubt Zone (${(similarity * 100).toFixed(1)}%). Triggering Vision AI to compare images...`);
-                        
-                        const img1 = await fetchImageBase64(incomingImageUrl);
-                        const img2 = await fetchImageBase64(existingImageUrl);
-
-                        if (img1 && img2) {
-                            try {
-                                const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-                                const response = await ai.models.generateContent({
-                                    model: 'gemini-3.5-flash',
-                                    contents: [
-                                        "You are an expert e-commerce duplicate detection system. Look at these two images. Are they selling the exact same physical wholesale item? Ignore model context, dog posture, or minor variant differences (like size or color), but pay attention to structural difference. If they are the same physical item, reply with ONLY the word: DUPLICATE. If they are structurally different items, reply with ONLY the word: UNIQUE.",
-                                        "Image A:",
-                                        img1,
-                                        "Image B:",
-                                        img2
-                                    ]
-                                });
-
-                                const decision = (response.text || '').trim().toUpperCase();
-                                console.log(`[DuplicateScanner] 🧠 Vision AI Judge Decision: ${decision}`);
-
-                                if (decision === 'DUPLICATE') {
-                                    console.log(`[DuplicateScanner] 🚨 Duplicate confirmed by Vision AI!`);
-                                    return existingIdNum;
-                                }
-                            } catch (aiError) {
-                                console.error('[DuplicateScanner] Vision AI Judge failed:', aiError.message);
-                            }
-                        }
-                    }
+                // Keep track of the single highest match in the doubt zone (similarity > 0.35)
+                if (similarity > 0.35 && similarity > highestSimilarity) {
+                    highestSimilarity = similarity;
+                    bestCandidate = existingNode;
                 }
+            }
+        }
+
+        // 2. Doubt Zone Check: If we found a candidate with suspicious similarity, use a cheap text-only AI referee to confirm
+        if (bestCandidate && highestSimilarity > 0.35) {
+            const existingIdNum = bestCandidate.id.split('/').pop();
+            const cleanIncomingDesc = (product.body_html || '').replace(/<[^>]*>?/gm, '').substring(0, 500);
+            const cleanExistingDesc = (bestCandidate.description || '').replace(/<[^>]*>?/gm, '').substring(0, 500);
+
+            console.log(`[DuplicateScanner] 🔍 Doubt Zone match (${(highestSimilarity * 100).toFixed(1)}%). Triggering cheap text-only AI Referee...`);
+            
+            try {
+                const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+                const prompt = `You are a strict e-commerce duplicate verification system.
+Look at the titles and descriptions of these two products. Are they selling the exact same physical wholesale item?
+Ignore differences in marketing copy, pricing, sizing, color variations, or title phrasing.
+If they are selling the exact same physical item, reply with ONLY the word: DUPLICATE.
+If they are different items, reply with ONLY the word: UNIQUE.
+
+Product A:
+Title: ${product.title}
+Description: ${cleanIncomingDesc}
+
+Product B:
+Title: ${bestCandidate.title}
+Description: ${cleanExistingDesc}
+`;
+
+                const aiResponse = await ai.models.generateContent({
+                    model: 'gemini-3.5-flash',
+                    contents: prompt
+                });
+
+                const decision = (aiResponse.text || '').trim().toUpperCase();
+                console.log(`[DuplicateScanner] 🧠 Text-Only AI Referee Decision: ${decision}`);
+
+                if (decision === 'DUPLICATE') {
+                    console.log(`[DuplicateScanner] 🚨 Duplicate confirmed by Text-Only AI Referee!`);
+                    return existingIdNum;
+                }
+            } catch (aiError) {
+                console.error('[DuplicateScanner] Text-Only AI Referee failed:', aiError.message);
             }
         }
 
