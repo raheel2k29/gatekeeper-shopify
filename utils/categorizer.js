@@ -14,7 +14,7 @@ async function categorizeProduct(title, description) {
 
         // Use the official new @google/genai SDK to fully support Enterprise API keys
         const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-        const modelName = 'gemini-3.5-flash';
+        const modelName = 'gemini-3.5-flash-lite';
 
         // Extract and preserve all image, video, and iframe tags from the original description
         const mediaRegex = /<(img|video|iframe)[^>]*>/gi;
