@@ -1,4 +1,4 @@
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenAI } = require('@google/genai');
 const { MEGA_MENU_CATEGORIES } = require('./categories');
 
 /**
@@ -12,9 +12,9 @@ async function categorizeProduct(title, description) {
             return { tags: ["Uncategorized"], category: "Uncategorized", seo_title: title, seo_description: description, metafields: [] };
         }
 
-        // Use the official stable v1 SDK instead of the beta SDK
-        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-        const model = genAI.getGenerativeModel({ model: "gemini-flash-latest" });
+        // Use the official new @google/genai SDK to fully support Enterprise API keys
+        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const modelName = 'gemini-3.5-flash';
 
         // Extract and preserve all image, video, and iframe tags from the original description
         const mediaRegex = /<(img|video|iframe)[^>]*>/gi;
@@ -47,13 +47,16 @@ Product Description: ${cleanDescription}
 `;
 
         // Auto-retry helper for intermittent 503 errors from Google
-        let result = null;
+        let response = null;
         for (let i = 0; i < 3; i++) {
             try {
-                result = await model.generateContent(prompt);
+                response = await ai.models.generateContent({
+                    model: modelName,
+                    contents: prompt
+                });
                 break; // Success!
             } catch (err) {
-                if (err.message.includes('503') && i < 2) {
+                if (err.message && err.message.includes('503') && i < 2) {
                     console.log(`[Categorizer] Gemini 503 Error. Retrying attempt ${i+2}/3 in 2 seconds...`);
                     await new Promise(res => setTimeout(res, 2000));
                 } else {
@@ -62,8 +65,7 @@ Product Description: ${cleanDescription}
             }
         }
 
-        const response = await result.response;
-        const text = response.text() || '{}';
+        const text = response.text || '{}';
         
         // Strip markdown code blocks just in case the AI wraps it
         const cleanJsonString = text.replace(/```json/g, '').replace(/```/g, '').trim();
