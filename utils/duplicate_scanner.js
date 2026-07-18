@@ -60,6 +60,14 @@ async function checkForDuplicate(core_signature, product) {
                         tags
                         title
                         description
+                        metafields(identifiers: [
+                            {namespace: "custom", key: "size"},
+                            {namespace: "custom", key: "color"},
+                            {namespace: "custom", key: "material"}
+                        ]) {
+                            key
+                            value
+                        }
                     }
                 }
             }
@@ -132,45 +140,74 @@ async function checkForDuplicate(core_signature, product) {
             }
         }
 
-        // 2. Doubt Zone Check: If we found a candidate with suspicious similarity, use a cheap text-only AI referee to confirm
+        // Helper to normalize dimensions from size strings into a comparable centimeter list
+        const parseDimensionsToCm = (str) => {
+            if (!str) return [];
+            const clean = str.toLowerCase();
+            const numberRegex = /(\d+(?:\.\d+)?)/g;
+            const numbers = clean.match(numberRegex) || [];
+            
+            // Check if imperial units are present
+            const isImperial = clean.includes('inch') || clean.includes('in') || clean.includes('"') || clean.includes('lbs');
+            
+            return numbers.map(num => {
+                const val = parseFloat(num);
+                // Convert inches to cm
+                return isImperial ? Math.round(val * 2.54) : Math.round(val);
+            });
+        };
+
+        // 2. Doubt Zone Check: Verify matches using pure JS code comparing custom namespace metafield values
         if (bestCandidate && highestSimilarity > 0.35) {
             const existingIdNum = bestCandidate.id.split('/').pop();
-            const cleanIncomingDesc = (product.body_html || '').replace(/<[^>]*>?/gm, '').substring(0, 500);
-            const cleanExistingDesc = (bestCandidate.description || '').replace(/<[^>]*>?/gm, '').substring(0, 500);
 
-            console.log(`[DuplicateScanner] 🔍 Doubt Zone match (${(highestSimilarity * 100).toFixed(1)}%). Triggering cheap text-only AI Referee...`);
-            
-            try {
-                const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-                const prompt = `You are a strict e-commerce duplicate verification system.
-Look at the titles and descriptions of these two products. Are they selling the exact same physical wholesale item?
-Ignore differences in marketing copy, pricing, sizing, color variations, or title phrasing.
-If they are selling the exact same physical item, reply with ONLY the word: DUPLICATE.
-If they are different items, reply with ONLY the word: UNIQUE.
+            // Extract the incoming values (which are being processed in index.js right now)
+            const incomingMetafields = product.metafields || [];
+            const incomingSize = (incomingMetafields.find(m => m.key === 'size')?.value || '').toLowerCase().trim();
+            const incomingColor = (incomingMetafields.find(m => m.key === 'color')?.value || '').toLowerCase().trim();
+            const incomingMaterial = (incomingMetafields.find(m => m.key === 'material')?.value || '').toLowerCase().trim();
 
-Product A:
-Title: ${product.title}
-Description: ${cleanIncomingDesc}
+            // Extract the existing values returned by Shopify GraphQL
+            const existingMetafields = bestCandidate.metafields || [];
+            const existingSize = (existingMetafields.find(m => m.key === 'size')?.value || '').toLowerCase().trim();
+            const existingColor = (existingMetafields.find(m => m.key === 'color')?.value || '').toLowerCase().trim();
+            const existingMaterial = (existingMetafields.find(m => m.key === 'material')?.value || '').toLowerCase().trim();
 
-Product B:
-Title: ${bestCandidate.title}
-Description: ${cleanExistingDesc}
-`;
+            console.log(`[DuplicateScanner] 🔍 Doubt Zone match (${(highestSimilarity * 100).toFixed(1)}%). Performing $0 Pure Metafield Code Matcher...`);
+            console.log(`[DuplicateScanner] Incoming Specs: Size="${incomingSize}" | Color="${incomingColor}" | Material="${incomingMaterial}"`);
+            console.log(`[DuplicateScanner] Existing Specs: Size="${existingSize}" | Color="${existingColor}" | Material="${existingMaterial}"`);
 
-                const aiResponse = await ai.models.generateContent({
-                    model: 'gemini-3.5-flash',
-                    contents: prompt
-                });
+            // Check if we have enough matching specs to verify. If they are completely blank, fall back to safe uniqueness.
+            if (incomingSize || incomingColor || incomingMaterial) {
+                
+                // Compare size dimensions (normalized to cm to handle metric vs imperial units)
+                const inDims = parseDimensionsToCm(incomingSize);
+                const exDims = parseDimensionsToCm(existingSize);
+                const sizeMatch = inDims.length > 0 && exDims.length > 0 && inDims.sort().join(',') === exDims.sort().join(',');
 
-                const decision = (aiResponse.text || '').trim().toUpperCase();
-                console.log(`[DuplicateScanner] 🧠 Text-Only AI Referee Decision: ${decision}`);
+                // Compare color and material tags
+                const colorMatch = incomingColor && existingColor && (incomingColor.includes(existingColor) || existingColor.includes(incomingColor));
+                const materialMatch = incomingMaterial && existingMaterial && (incomingMaterial.includes(existingMaterial) || existingMaterial.includes(incomingMaterial));
 
-                if (decision === 'DUPLICATE') {
-                    console.log(`[DuplicateScanner] 🚨 Duplicate confirmed by Text-Only AI Referee!`);
-                    return existingIdNum;
+                // If ALL present specifications match, it's a confirmed duplicate!
+                let isDuplicate = false;
+                
+                if (incomingSize && existingSize) {
+                    // Size is the strongest physical constraint
+                    if (sizeMatch && (colorMatch || materialMatch)) {
+                        isDuplicate = true;
+                    }
+                } else if (colorMatch && materialMatch) {
+                    // Fallback if size is missing but color and material match
+                    isDuplicate = true;
                 }
-            } catch (aiError) {
-                console.error('[DuplicateScanner] Text-Only AI Referee failed:', aiError.message);
+
+                if (isDuplicate) {
+                    console.log(`[DuplicateScanner] 🚨 Duplicate confirmed by Pure Metafield Code Matcher!`);
+                    return existingIdNum;
+                } else {
+                    console.log(`[DuplicateScanner] 🟢 Unique product variation confirmed (metafields did not match).`);
+                }
             }
         }
 
