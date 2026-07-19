@@ -99,6 +99,62 @@ async function standardizeProduct(product, supplierName, categories = [], produc
 
         console.log(`[Standardizer] Successfully updated Product ${product.id} via REST.`);
 
+        // --- GRAPHQL CATEGORY TAXONOMY UPDATE ---
+        const { CATEGORY_TAXONOMY_MAP } = require('./categories');
+        const taxonomyGid = CATEGORY_TAXONOMY_MAP[productType];
+        const graphqlEndpoint = `https://${shopUrl}/admin/api/2026-07/graphql.json`;
+        const productGid = `gid://shopify/Product/${product.id}`;
+
+        if (taxonomyGid) {
+            console.log(`[Standardizer] Mapping Category "${productType}" to Taxonomy GID: ${taxonomyGid}`);
+            const categoryQuery = `
+                mutation productCategoryUpdate($input: ProductInput!) {
+                    productUpdate(input: $input) {
+                        product {
+                            id
+                            category {
+                                id
+                                fullName
+                            }
+                        }
+                        userErrors {
+                            field
+                            message
+                        }
+                    }
+                }
+            `;
+
+            try {
+                const catResponse = await fetch(graphqlEndpoint, {
+                    method: 'POST',
+                    headers: {
+                        'X-Shopify-Access-Token': accessToken,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        query: categoryQuery,
+                        variables: {
+                            input: {
+                                id: productGid,
+                                category: taxonomyGid
+                            }
+                        }
+                    })
+                });
+                const catData = await catResponse.json();
+                if (catData.errors) {
+                    console.error(`[Standardizer] Category Update GraphQL Error:`, JSON.stringify(catData.errors));
+                } else if (catData.data?.productUpdate?.userErrors?.length > 0) {
+                    console.error(`[Standardizer] Category Update UserErrors:`, JSON.stringify(catData.data.productUpdate.userErrors));
+                } else {
+                    console.log(`[Standardizer] Successfully assigned native category to: ${catData.data.productUpdate.product.category.fullName}`);
+                }
+            } catch (err) {
+                console.error(`[Standardizer] Failed to update category taxonomy:`, err.message);
+            }
+        }
+
         // --- GRAPHQL METAFIELDS INJECTION ---
         if (metafields && metafields.length > 0) {
             const graphqlEndpoint = `https://${shopUrl}/admin/api/2026-07/graphql.json`;
