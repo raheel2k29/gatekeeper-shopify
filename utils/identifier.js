@@ -36,7 +36,7 @@ async function identifySupplier(product, rawShopUrl, accessToken) {
         if (rawVendor.includes('petdropshipper')) return 'PetDropshipper';
     }
     
-    // Fallback: Check Shopify Events API for true author
+    // Fallback 2: Check Shopify Events API for true author
     try {
         const response = await fetch(`https://${shopUrl}/admin/api/2026-07/products/${product.id}/events.json`, {
             method: 'GET',
@@ -69,6 +69,34 @@ async function identifySupplier(product, rawShopUrl, accessToken) {
         }
     } catch (e) {
         console.error('[Identifier] Error fetching events API:', e);
+    }
+
+    // Fallback 3: Query product variants directly from Shopify to retrieve their actual fulfillment_service values
+    try {
+        console.log(`[Identifier] Running Fallback 3 (Variants Query) for product ${product.id}`);
+        const response = await fetch(`https://${shopUrl}/admin/api/2026-07/products/${product.id}/variants.json`, {
+            method: 'GET',
+            headers: { 'X-Shopify-Access-Token': accessToken }
+        });
+        const json = await response.json();
+        
+        if (json.variants && json.variants.length > 0) {
+            const service = (json.variants[0].fulfillment_service || '').toLowerCase();
+            console.log(`[Identifier] Found variant fulfillment service on fallback: ${service}`);
+            
+            if (service && service !== 'manual') {
+                if (service.includes('zendrop')) return 'Zendrop';
+                if (service.includes('cjdropshipping') || service.includes('cj')) return 'CJ Dropshipping';
+                if (service.includes('dsers')) return 'DSers';
+                if (service.includes('wholesale2b')) return 'Wholesale2B';
+                if (service.includes('syncee')) return 'Syncee AI Dropship';
+                if (service.includes('topdawg')) return 'TopDawg';
+                if (service.includes('appscenic')) return 'AppScenic';
+                if (service.includes('petdropshipper')) return 'PetDropshipper';
+            }
+        }
+    } catch (e) {
+        console.error('[Identifier] Fallback 3 variants check failed:', e.message);
     }
 
     return 'Manual Entry / Unknown Source';
