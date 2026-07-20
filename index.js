@@ -14,6 +14,10 @@ app.use(express.json());
 // In-Memory Thread Lock Cache to drop parallel webhooks for the same product
 const activeLocks = new Set();
 
+// Throttling Queue: Ensures different products are processed sequentially with a delay, avoiding Quota Limit Exhaustion
+let queuePromise = Promise.resolve();
+const delay = (ms) => new Promise(res => setTimeout(res, ms));
+
 // Webhook endpoint for product creation
 app.post('/webhook/products/create', async (req, res) => {
     // Processing begins (Vercel Serverless requires us to wait until finished before sending response)
@@ -40,8 +44,26 @@ app.post('/webhook/products/create', async (req, res) => {
         console.log(`[Gatekeeper] 🔓 Lock released for Product ID: ${productIdStr}`);
     };
 
-    console.log(`\n[Gatekeeper] 🚀 Received new product: ${product.title} (ID: ${product.id})`);
+    console.log(`\n[Gatekeeper] 🚀 Received new product: ${product.title} (ID: ${product.id}). Queueing...`);
 
+    // Chain to our sequential throttling queue
+    queuePromise = queuePromise.then(async () => {
+        try {
+            // Introduce a 5-second buffer delay to keep under the GCP enterprise requests-per-minute quota limits
+            await delay(5000);
+            await processProduct(product, res);
+        } catch (queueErr) {
+            console.error('[Gatekeeper] Error in queue execution:', queueErr);
+            if (!res.headersSent) {
+                res.status(500).send('Queue processing failed');
+            }
+        } finally {
+            releaseLock();
+        }
+    });
+});
+
+async function processProduct(product, res) {
     try {
         // EARLY EXIT: If the product already has a Product Type that matches one of our 
         // exact 114 Mega Menu Categories (or it failed and is awaiting manual review), 
@@ -159,10 +181,13 @@ app.post('/webhook/products/create', async (req, res) => {
         
         // Send the response
         res.status(200).send('Webhook processed');
-    } finally {
-        releaseLock();
+    } catch (err) {
+        console.error('[Gatekeeper] Error standardizing product:', err.message);
+        if (!res.headersSent) {
+            res.status(500).send('Error processing product');
+        }
     }
-});
+}
 
 // Vercel Serverless Export
 if (process.env.VERCEL) {
