@@ -22,6 +22,19 @@ async function identifySupplier(product, rawShopUrl, accessToken) {
         if (service.includes('appscenic')) return 'AppScenic';
         if (service.includes('petdropshipper')) return 'PetDropshipper';
     }
+
+    // New Fast Local Match: Check if the raw imported vendor matches any known dropship supplier name
+    if (product.vendor) {
+        const rawVendor = product.vendor.toLowerCase().replace(/[^a-z0-9]/g, '');
+        if (rawVendor.includes('zendrop')) return 'Zendrop';
+        if (rawVendor.includes('cjdropshipping') || rawVendor.includes('cj')) return 'CJ Dropshipping';
+        if (rawVendor.includes('dsers')) return 'DSers';
+        if (rawVendor.includes('wholesale2b') || rawVendor.includes('wholesale')) return 'Wholesale2B';
+        if (rawVendor.includes('syncee')) return 'Syncee AI Dropship';
+        if (rawVendor.includes('topdawg')) return 'TopDawg';
+        if (rawVendor.includes('appscenic')) return 'AppScenic';
+        if (rawVendor.includes('petdropshipper')) return 'PetDropshipper';
+    }
     
     // Fallback: Check Shopify Events API for true author
     try {
