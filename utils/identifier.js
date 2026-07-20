@@ -36,8 +36,18 @@ async function identifySupplier(product, rawShopUrl, accessToken) {
         if (rawVendor.includes('petdropshipper')) return 'PetDropshipper';
     }
     
-    // Fallback 2: Check Shopify Events API for true author
+    // Fallback 1.5: Check SKU patterns (e.g., DSers/AliExpress uses '#' and ';' dividers in variant SKUs)
+    if (product.variants && product.variants.length > 0) {
+        const sku = product.variants[0].sku || '';
+        if (sku.includes('#') || sku.includes(';')) {
+            console.log('[Identifier] Detected DSers/AliExpress SKU pattern. Identifying as DSers.');
+            return 'DSers';
+        }
+    }
+    
+    // Fallback 2: Check Shopify Events API for true author (Wait 1.5s to ensure Shopify event database synced)
     try {
+        await new Promise(res => setTimeout(res, 1500));
         const response = await fetch(`https://${shopUrl}/admin/api/2026-07/products/${product.id}/events.json`, {
             method: 'GET',
             headers: { 'X-Shopify-Access-Token': accessToken }
@@ -53,9 +63,9 @@ async function identifySupplier(product, rawShopUrl, accessToken) {
                 console.log(`[Identifier] Found create event author: ${createEvent.author}`);
                 
                 if (author.includes('zendrop')) return 'Zendrop';
-                if (author.includes('cj')) return 'CJ Dropshipping';
+                if (author.includes('cj') || author.includes('cjdropshipping')) return 'CJ Dropshipping';
                 if (author.includes('dsers')) return 'DSers';
-                if (author.includes('wholesale2b')) return 'Wholesale2B';
+                if (author.includes('wholesale2b') || author.includes('wholesale')) return 'Wholesale2B';
                 if (author.includes('syncee')) return 'Syncee AI Dropship';
                 if (author.includes('topdawg')) return 'TopDawg';
                 if (author.includes('appscenic')) return 'AppScenic';
