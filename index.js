@@ -20,6 +20,12 @@ const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
 // Webhook endpoint for product creation
 app.post('/webhook/products/create', async (req, res) => {
+    // PAUSE SWITCH: If active, instantly drops all webhooks without doing any API calls
+    if (process.env.PAUSE_GATEKEEPER === 'true') {
+        console.log('[Gatekeeper] ⏸️ Gatekeeper is PAUSED. Dropping incoming webhook instantly.');
+        return res.status(200).send('Gatekeeper Paused');
+    }
+
     const product = req.body;
     
     if (!product || !product.id) {
