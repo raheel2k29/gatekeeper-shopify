@@ -20,7 +20,6 @@ const delay = (ms) => new Promise(res => setTimeout(res, ms));
 
 // Webhook endpoint for product creation
 app.post('/webhook/products/create', async (req, res) => {
-    // Processing begins (Vercel Serverless requires us to wait until finished before sending response)
     const product = req.body;
     
     if (!product || !product.id) {
@@ -46,24 +45,24 @@ app.post('/webhook/products/create', async (req, res) => {
 
     console.log(`\n[Gatekeeper] 🚀 Received new product: ${product.title} (ID: ${product.id}). Queueing...`);
 
-    // Chain to our sequential throttling queue
+    // Chain to our sequential throttling queue to execute in the background asynchronously
     queuePromise = queuePromise.then(async () => {
         try {
             // Introduce a 5-second buffer delay to keep under the GCP enterprise requests-per-minute quota limits
             await delay(5000);
-            await processProduct(product, res);
+            await processProduct(product);
         } catch (queueErr) {
             console.error('[Gatekeeper] Error in queue execution:', queueErr);
-            if (!res.headersSent) {
-                res.status(500).send('Queue processing failed');
-            }
         } finally {
             releaseLock();
         }
     });
+
+    // RESPOND INSTANTLY TO SHOPIFY: Prevents gateway timeouts when importing hundreds of products in bulk
+    res.status(200).send('Queued for background processing');
 });
 
-async function processProduct(product, res) {
+async function processProduct(product) {
     try {
         // EARLY EXIT: If the product already has a Product Type that matches one of our 
         // exact 114 Mega Menu Categories (or it failed and is awaiting manual review), 
@@ -71,7 +70,7 @@ async function processProduct(product, res) {
         // This allows us to keep tags clean for visitors while preventing infinite API loops.
         if (product.product_type && (MEGA_MENU_CATEGORIES.includes(product.product_type) || product.product_type === 'Requires Manual Review')) {
             console.log(`[Gatekeeper] ⏭️ Product Type is already "${product.product_type}". Skipping API calls to save credits.`);
-            return res.status(200).send('Already processed');
+            return;
         }
 
         // Step 0: Filter out products that have already been processed to prevent infinite loops!
@@ -95,7 +94,7 @@ async function processProduct(product, res) {
                     
                     if (titleMatches && tagsMatch) {
                         console.log('[Gatekeeper] 🛡️ Product matches Metafield Vault. Already fully optimized. Exiting.');
-                        return res.status(200).send('Matches Vault');
+                        return;
                     } else {
                         console.log('[Gatekeeper] 🚨 Supplier overwrite detected! Bypassing AI and restoring from Metafield Vault!');
                         
@@ -119,7 +118,7 @@ async function processProduct(product, res) {
                         });
                         
                         console.log('[Gatekeeper] 🛡️ Vault restoration complete.');
-                        return res.status(200).send('Restored from Vault');
+                        return;
                     }
                 }
             }
@@ -130,7 +129,7 @@ async function processProduct(product, res) {
         // Fallback: If no cache exists, but we see the Signature tag, we still exit
         if (product.tags && (product.tags.includes('Signature:') || product.tags.includes('Duplicate'))) {
             console.log('[Gatekeeper] Product already processed (Signature/Duplicate tag found but no cache). Exiting.');
-            return res.status(200).send('Already processed');
+            return;
         }
 
         // Step 1: Authentic Identification
@@ -171,21 +170,15 @@ async function processProduct(product, res) {
             } catch (e) {
                 console.error(`[Gatekeeper] Error hiding duplicate:`, e);
             }
-            return res.status(200).send('Duplicate caught');
+            return;
         }
 
         // 4. STANDARDIZE & CLEAN: Push the new supplier, tags, seo content, and metafields to Shopify
         await standardizeProduct(product, supplierName, tags, category, seo_title, seo_description, metafields, core_signature);
         
         console.log(`[Gatekeeper] ✅ Product processing complete.\n`);
-        
-        // Send the response
-        res.status(200).send('Webhook processed');
     } catch (err) {
         console.error('[Gatekeeper] Error standardizing product:', err.message);
-        if (!res.headersSent) {
-            res.status(500).send('Error processing product');
-        }
     }
 }
 
