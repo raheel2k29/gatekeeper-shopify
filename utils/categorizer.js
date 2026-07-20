@@ -47,9 +47,9 @@ Product Title: ${title}
 Product Description: ${cleanDescription}
 `;
 
-        // Auto-retry helper for intermittent 503 errors from Google
+        // Auto-retry helper for 503 (demand spikes) and 429 (quota limits) errors from Google
         let response = null;
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 5; i++) {
             try {
                 response = await ai.models.generateContent({
                     model: modelName,
@@ -57,11 +57,12 @@ Product Description: ${cleanDescription}
                 });
                 break; // Success!
             } catch (err) {
-                if (err.message && err.message.includes('503') && i < 2) {
-                    console.log(`[Categorizer] Gemini 503 Error. Retrying attempt ${i+2}/3 in 2 seconds...`);
-                    await new Promise(res => setTimeout(res, 2000));
+                const isRetryable = err.message && (err.message.includes('503') || err.message.includes('429') || err.message.includes('quota') || err.message.includes('limit'));
+                if (isRetryable && i < 4) {
+                    console.log(`[Categorizer] Gemini AI Busy (Code 503/429). Retrying attempt ${i+2}/5 in 3 seconds...`);
+                    await new Promise(res => setTimeout(res, 3000));
                 } else {
-                    throw err; // Out of retries or not a 503
+                    throw err; // Out of retries or non-retryable error
                 }
             }
         }

@@ -14,10 +14,6 @@ app.use(express.json());
 // In-Memory Thread Lock Cache to drop parallel webhooks for the same product
 const activeLocks = new Set();
 
-// Throttling Queue: Ensures different products are processed sequentially with a delay, avoiding Quota Limit Exhaustion
-let queuePromise = Promise.resolve();
-const delay = (ms) => new Promise(res => setTimeout(res, ms));
-
 // Webhook endpoint for product creation
 app.post('/webhook/products/create', async (req, res) => {
     // PAUSE SWITCH: If active, instantly drops all webhooks without doing any API calls
@@ -49,23 +45,17 @@ app.post('/webhook/products/create', async (req, res) => {
         console.log(`[Gatekeeper] 🔓 Lock released for Product ID: ${productIdStr}`);
     };
 
-    console.log(`\n[Gatekeeper] 🚀 Received new product: ${product.title} (ID: ${product.id}). Queueing...`);
+    console.log(`\n[Gatekeeper] 🚀 Processing new product: ${product.title} (ID: ${product.id})`);
 
-    // Chain to our sequential throttling queue to execute in the background asynchronously
-    queuePromise = queuePromise.then(async () => {
-        try {
-            // Introduce a 5-second buffer delay to keep under the GCP enterprise requests-per-minute quota limits
-            await delay(5000);
-            await processProduct(product);
-        } catch (queueErr) {
-            console.error('[Gatekeeper] Error in queue execution:', queueErr);
-        } finally {
-            releaseLock();
-        }
-    });
-
-    // RESPOND INSTANTLY TO SHOPIFY: Prevents gateway timeouts when importing hundreds of products in bulk
-    res.status(200).send('Queued for background processing');
+    try {
+        await processProduct(product);
+        res.status(200).send('Webhook processed');
+    } catch (err) {
+        console.error('[Gatekeeper] Webhook error:', err.message);
+        res.status(500).send('Internal processing error');
+    } finally {
+        releaseLock();
+    }
 });
 
 async function processProduct(product) {
