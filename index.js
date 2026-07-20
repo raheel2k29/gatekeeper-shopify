@@ -9,7 +9,8 @@ const { checkForDuplicate } = require('./utils/duplicate_scanner');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 // In-Memory Thread Lock Cache to drop parallel webhooks for the same product
 const activeLocks = new Set();
