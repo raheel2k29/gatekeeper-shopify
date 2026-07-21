@@ -77,10 +77,10 @@ async function standardizeProduct(product, supplierName, categories = [], produc
         // Add UI metafields with proper Shopify schema to prevent 422 API errors
         if (metafields && Array.isArray(metafields)) {
             const formattedMetafields = metafields.map(m => ({
-                namespace: 'custom',
+                namespace: 'pns',
                 key: m.key || 'unknown',
                 value: String(m.value || ''),
-                type: 'single_line_text_field'
+                type: (m.key === 'material' || m.key === 'color' || m.key === 'size') ? 'single_line_text_field' : 'multi_line_text_field'
             }));
             payload.product.metafields.push(...formattedMetafields);
         }
