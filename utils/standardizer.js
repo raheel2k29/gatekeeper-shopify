@@ -243,47 +243,7 @@ async function standardizeProduct(product, supplierName, categories = [], produc
                 };
             });
 
-            // Parse color, material, and breed fit/animal types to dynamically populate Shopify standard fields
-            const colorField = metafields.find(f => f.key === 'color');
-            if (colorField && colorField.value) {
-                // Split multi-variant colors (e.g. "Yellow, Black, Red") and resolve each
-                const colorValues = String(colorField.value).split(',').map(v => v.toLowerCase().trim());
-                const matchedGids = colorValues.map(v => TAXONOMY_VALUES_MAP[v]).filter(Boolean);
-                if (matchedGids.length > 0) {
-                    graphqlMetafields.push({
-                        ownerId: productGid,
-                        namespace: 'shopify',
-                        key: 'color-pattern',
-                        value: JSON.stringify(matchedGids),
-                        type: 'list.metaobject_reference'
-                    });
-                }
-            }
 
-            const materialField = metafields.find(f => f.key === 'material');
-            if (materialField && materialField.value) {
-                // Split multi-variant materials (e.g. "Nylon, Steel") and resolve each
-                const materialValues = String(materialField.value).split(',').map(v => v.toLowerCase().trim());
-                const matchedGids = materialValues.map(v => TAXONOMY_VALUES_MAP[v]).filter(Boolean);
-                if (matchedGids.length > 0) {
-                    graphqlMetafields.push({
-                        ownerId: productGid,
-                        namespace: 'shopify',
-                        key: 'material',
-                        value: JSON.stringify(matchedGids),
-                        type: 'list.metaobject_reference'
-                    });
-                }
-            }
-
-            // Always default standard animal type to Dogs since this is a dog/pet gear store
-            graphqlMetafields.push({
-                ownerId: productGid,
-                namespace: 'shopify',
-                key: 'animal-type',
-                value: JSON.stringify(["gid://shopify/TaxonomyValue/8225"]), // Dogs
-                type: 'list.metaobject_reference'
-            });
 
             const graphqlQuery = `
                 mutation metafieldsSet($metafields: [MetafieldsSetInput!]!) {

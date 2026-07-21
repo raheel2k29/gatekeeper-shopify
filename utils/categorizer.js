@@ -45,7 +45,10 @@ You must return a raw JSON object with exactly these 6 fields:
      - Under no circumstances include any <img> or media tags in this description (images are handled separately in the media gallery).
      - Keep tags valid and output only clean HTML headers, lists, and paragraphs.
 6. "metafields": An array of objects extracting key product specifications. You must ONLY use the following exact keys if applicable, do not invent new keys: "disclosures", "keywords", "safety", "care", "features", "breed_fit", "size", "color", "material". Format: [{"key": "material", "value": "Plush"}].
-   - CRITICAL Size Rule: In the "size" metafield, you MUST always output both US Imperial and Metric dimensions together, listing the US Imperial value first (e.g., '23.6" / 60 cm', '9" / 22.8 cm'). Convert units if only one is provided by the supplier.
+   - CRITICAL Extraction Rules:
+     - In the "color" metafield, extract the actual colors of the product (e.g., 'Yellow', 'Black, Red', 'Pink'). If the title or description mentions any colors, list them clearly. Use standard simple color names where possible so they match standard filters.
+     - In the "material" metafield, extract the core materials (e.g., 'Nylon', 'Silicone', 'ABS Plastic', 'TPU').
+     - In the "size" metafield, you MUST always output both US Imperial and Metric dimensions together, listing the US Imperial value first (e.g., '23.6" / 60 cm', '9" / 22.8 cm'). Convert units if only one is provided by the supplier.
 
 Allowed Mega Menu Categories:
 ${JSON.stringify(MEGA_MENU_CATEGORIES)}
