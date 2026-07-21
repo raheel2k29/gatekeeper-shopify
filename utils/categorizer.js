@@ -26,14 +26,24 @@ async function categorizeProduct(title, description) {
 
         // MEGA_MENU_CATEGORIES imported from categories.js
 
-        const prompt = `You are an expert e-commerce product copywriter and tagger for a premium Shopify Pet Store.
+         const prompt = `You are an expert e-commerce product copywriter and tagger for a premium Shopify Pet Store.
 I will give you a product title and a raw description.
 You must return a raw JSON object with exactly these 6 fields:
 1. "core_signature": Extract a highly specific 3-to-6 word signature representing the core physical object. You MUST include distinguishing features like emitter count, size, weight, material, or color if they define the product as a unique variation. Do not strip these out! (e.g., '4-emitter ultrasonic bark deterrent', 'blue silicone grooming glove').
 2. "tags": An array of exactly 4 to 6 highly relevant, professional category tags. Include a top-level animal tag. Do NOT use hashtags.
 3. "category": EXACTLY ONE category selected from the Allowed Mega Menu Categories list below. You must NOT invent a new category. Pick the absolute closest match.
 4. "seo_title": A clean, catchy, premium, and SEO-friendly product name. Remove any spammy dropship words.
-5. "seo_description": A persuasive, professional sales description formatted in clean HTML (use <p>, <b>, <ul>, <li>). Do NOT include image tags.
+5. "seo_description": A highly organized, premium, and professional sales description formatted in clean HTML. You MUST divide the content using exactly these standard <h2> sections if applicable to the product type:
+   - <h2>Overview</h2>: A brief, high-level introductory paragraph capturing the product's main purpose.
+   - <h2>Key Benefits</h2>: An HTML bulleted list (<ul> and <li>) highlighting core advantages, starting with bolded key terms.
+   - <h2>Who It's For</h2>: A short paragraph describing the target audience (dog owners, active trainers, etc.).
+   - <h2>How It Works</h2>: A paragraph explaining the operational use of the product.
+   - <h2>Specs</h2>: An HTML bulleted list extracting key specifications (Weight, Dimensions, Material, Power, Colors, etc.). CRITICAL: Always list dimensions with US Imperial first and Metric second (e.g., 5.1" x 1.0" x 1.6" / 13.0 x 2.6 x 4.0 cm).
+   - <h2>Suggested Use</h2>: An HTML bulleted list detailing exactly when and how to apply the item.
+   - <h2>Safety Notes</h2> (or <h2>Care Instructions</h2>): An HTML bulleted list of warnings, restrictions, or care rules.
+   * CRITICAL Rules:
+     - Under no circumstances include any <img> or media tags in this description (images are handled separately in the media gallery).
+     - Keep tags valid and output only clean HTML headers, lists, and paragraphs.
 6. "metafields": An array of objects extracting key product specifications. You must ONLY use the following exact keys if applicable, do not invent new keys: "disclosures", "keywords", "safety", "care", "features", "breed_fit", "size", "color", "material". Format: [{"key": "material", "value": "Plush"}].
    - CRITICAL Size Rule: In the "size" metafield, you MUST always output both US Imperial and Metric dimensions together, listing the US Imperial value first (e.g., '23.6" / 60 cm', '9" / 22.8 cm'). Convert units if only one is provided by the supplier.
 
