@@ -41,14 +41,11 @@ const CATEGORY_TAXONOMY_MAP = {
     "Dog Sportswear": "gid://shopify/TaxonomyCategory/ap-2-6",
     "Dog Raincoats": "gid://shopify/TaxonomyCategory/ap-2-6",
     "Holiday Apparel": "gid://shopify/TaxonomyCategory/ap-2-6",
-    "Cooling Vests": "gid://shopify/TaxonomyCategory/ap-2-6",
-    "Boots & Paw Protection": "gid://shopify/TaxonomyCategory/ap-2-6",
-
-    // Dog Toys -> Dog Toys (ap-2-40-1)
-    "Chew Toys": "gid://shopify/TaxonomyCategory/ap-2-40-1",
-    "Puzzle & Smart Toys": "gid://shopify/TaxonomyCategory/ap-2-40-1",
-    "Balls & Fetch Toys": "gid://shopify/TaxonomyCategory/ap-2-40-1",
-    "Rope & Tug Toys": "gid://shopify/TaxonomyCategory/ap-2-40-1",
+    // Dog Toys -> Dog Toys (ap-2-3-7)
+    "Chew Toys": "gid://shopify/TaxonomyCategory/ap-2-3-7",
+    "Puzzle & Smart Toys": "gid://shopify/TaxonomyCategory/ap-2-3-7",
+    "Balls & Fetch Toys": "gid://shopify/TaxonomyCategory/ap-2-3-7",
+    "Rope & Tug Toys": "gid://shopify/TaxonomyCategory/ap-2-3-7",
 
     // Dog Collars, Harnesses & Leashes -> Pet Collars & Harnesses (ap-2-17) or Pet Leashes (ap-2-29)
     "Collars (Luxury, Tactical, Spike, GPS)": "gid://shopify/TaxonomyCategory/ap-2-17",
@@ -100,10 +97,10 @@ const CATEGORY_TAXONOMY_MAP = {
     "Cat Dresses": "gid://shopify/TaxonomyCategory/ap-2-6",
     "Cat Shirts": "gid://shopify/TaxonomyCategory/ap-2-6",
 
-    // Cat Toys -> Cat Toys (ap-2-40-2)
-    "Cat Laser Toys": "gid://shopify/TaxonomyCategory/ap-2-40-2",
-    "Cat Feather Toys": "gid://shopify/TaxonomyCategory/ap-2-40-2",
-    "Cat Interactive Toys": "gid://shopify/TaxonomyCategory/ap-2-40-2",
+    // Cat Toys -> Cat Toys (ap-2-2-5)
+    "Cat Laser Toys": "gid://shopify/TaxonomyCategory/ap-2-2-5",
+    "Cat Feather Toys": "gid://shopify/TaxonomyCategory/ap-2-2-5",
+    "Cat Interactive Toys": "gid://shopify/TaxonomyCategory/ap-2-2-5",
 
     // Cat Grooming & Accessories -> Grooming / Collars & Harnesses
     "Cat Brushes": "gid://shopify/TaxonomyCategory/ap-2-26-1",
