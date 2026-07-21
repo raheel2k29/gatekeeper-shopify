@@ -44,11 +44,11 @@ const CATEGORY_TAXONOMY_MAP = {
     "Cooling Vests": "gid://shopify/TaxonomyCategory/ap-2-6",
     "Boots & Paw Protection": "gid://shopify/TaxonomyCategory/ap-2-6",
 
-    // Dog Toys -> Pet Toys (ap-2-40) or Dog Toys (ap-2-3-8)
-    "Chew Toys": "gid://shopify/TaxonomyCategory/ap-2-3-8",
-    "Puzzle & Smart Toys": "gid://shopify/TaxonomyCategory/ap-2-3-8",
-    "Balls & Fetch Toys": "gid://shopify/TaxonomyCategory/ap-2-3-8",
-    "Rope & Tug Toys": "gid://shopify/TaxonomyCategory/ap-2-3-8",
+    // Dog Toys -> Dog Toys (ap-2-40-1)
+    "Chew Toys": "gid://shopify/TaxonomyCategory/ap-2-40-1",
+    "Puzzle & Smart Toys": "gid://shopify/TaxonomyCategory/ap-2-40-1",
+    "Balls & Fetch Toys": "gid://shopify/TaxonomyCategory/ap-2-40-1",
+    "Rope & Tug Toys": "gid://shopify/TaxonomyCategory/ap-2-40-1",
 
     // Dog Collars, Harnesses & Leashes -> Pet Collars & Harnesses (ap-2-17) or Pet Leashes (ap-2-29)
     "Collars (Luxury, Tactical, Spike, GPS)": "gid://shopify/TaxonomyCategory/ap-2-17",
@@ -68,13 +68,13 @@ const CATEGORY_TAXONOMY_MAP = {
     "Agility Kits": "gid://shopify/TaxonomyCategory/ap-2-5", // Pet Agility Equipment
     "Electronic Training Devices": "gid://shopify/TaxonomyCategory/ap-2-41",
 
-    // Dog Beds -> Pet Beds (ap-2-9) or Dog Beds (ap-2-3-2)
-    "Orthopedic Beds": "gid://shopify/TaxonomyCategory/ap-2-3-2",
-    "Calming Beds": "gid://shopify/TaxonomyCategory/ap-2-3-2",
-    "Heated & Cooling Beds": "gid://shopify/TaxonomyCategory/ap-2-3-2",
-    "Luxury Sofas": "gid://shopify/TaxonomyCategory/ap-2-3-2",
-    "Convertible Loungers": "gid://shopify/TaxonomyCategory/ap-2-3-2",
-    "Indoor/Outdoor Loungers": "gid://shopify/TaxonomyCategory/ap-2-3-2",
+    // Dog Beds -> Pet Beds (ap-2-9)
+    "Orthopedic Beds": "gid://shopify/TaxonomyCategory/ap-2-9",
+    "Calming Beds": "gid://shopify/TaxonomyCategory/ap-2-9",
+    "Heated & Cooling Beds": "gid://shopify/TaxonomyCategory/ap-2-9",
+    "Luxury Sofas": "gid://shopify/TaxonomyCategory/ap-2-9",
+    "Convertible Loungers": "gid://shopify/TaxonomyCategory/ap-2-9",
+    "Indoor/Outdoor Loungers": "gid://shopify/TaxonomyCategory/ap-2-9",
 
     // Grooming & Health -> Pet Grooming Supplies (ap-2-26) or Pet Vitamins & Supplements (ap-2-42)
     "Brushes & Combs": "gid://shopify/TaxonomyCategory/ap-2-26-1",
@@ -100,10 +100,10 @@ const CATEGORY_TAXONOMY_MAP = {
     "Cat Dresses": "gid://shopify/TaxonomyCategory/ap-2-6",
     "Cat Shirts": "gid://shopify/TaxonomyCategory/ap-2-6",
 
-    // Cat Toys -> Cat Toys (ap-2-2-5)
-    "Cat Laser Toys": "gid://shopify/TaxonomyCategory/ap-2-2-5",
-    "Cat Feather Toys": "gid://shopify/TaxonomyCategory/ap-2-2-5",
-    "Cat Interactive Toys": "gid://shopify/TaxonomyCategory/ap-2-2-5",
+    // Cat Toys -> Cat Toys (ap-2-40-2)
+    "Cat Laser Toys": "gid://shopify/TaxonomyCategory/ap-2-40-2",
+    "Cat Feather Toys": "gid://shopify/TaxonomyCategory/ap-2-40-2",
+    "Cat Interactive Toys": "gid://shopify/TaxonomyCategory/ap-2-40-2",
 
     // Cat Grooming & Accessories -> Grooming / Collars & Harnesses
     "Cat Brushes": "gid://shopify/TaxonomyCategory/ap-2-26-1",
