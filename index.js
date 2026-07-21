@@ -123,9 +123,9 @@ async function processProduct(product) {
             console.error('[Gatekeeper] Error checking metafield cache:', e);
         }
 
-        // Fallback: If no cache exists, but we see the Signature tag, we still exit
-        if (product.tags && (product.tags.includes('Signature:') || product.tags.includes('Duplicate'))) {
-            console.log('[Gatekeeper] Product already processed (Signature/Duplicate tag found but no cache). Exiting.');
+        // Fallback: If no cache exists, but we see the Duplicate tag, we still exit
+        if (product.tags && product.tags.includes('Duplicate')) {
+            console.log('[Gatekeeper] Product already marked as Duplicate. Exiting.');
             return;
         }
 

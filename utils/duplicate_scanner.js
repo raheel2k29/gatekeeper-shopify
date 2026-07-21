@@ -63,8 +63,10 @@ async function checkForDuplicate(core_signature, product) {
                         metafields(identifiers: [
                             {namespace: "custom", key: "size"},
                             {namespace: "custom", key: "color"},
-                            {namespace: "custom", key: "material"}
+                            {namespace: "custom", key: "material"},
+                            {namespace: "gatekeeper", key: "seo_cache"}
                         ]) {
+                            namespace
                             key
                             value
                         }
@@ -108,13 +110,21 @@ async function checkForDuplicate(core_signature, product) {
                 continue;
             }
 
-            // Find the AI signature tag
-            const tags = existingNode.tags || [];
-            const sigTag = tags.find(t => t.startsWith('Signature:'));
+            // Extract the hidden AI signature from the seo_cache metafield
+            const existingMetafields = existingNode.metafields || [];
+            const cacheMeta = existingMetafields.find(m => m.namespace === 'gatekeeper' && m.key === 'seo_cache');
             
-            if (sigTag) {
-                const targetSignature = sigTag.replace('Signature:', '').trim();
-                
+            let targetSignature = "";
+            if (cacheMeta && cacheMeta.value) {
+                try {
+                    const cacheObj = JSON.parse(cacheMeta.value);
+                    targetSignature = cacheObj.signature || "";
+                } catch (e) {
+                    console.error('[DuplicateScanner] Failed to parse existing seo_cache:', e.message);
+                }
+            }
+            
+            if (targetSignature) {
                 // Strict Number Check: If the sizes/numbers don't perfectly match (e.g. 67 vs 71), it's a different product!
                 const sourceNumbers = (cleanSignature.match(/\d+/g) || []).sort().join(',');
                 const targetNumbers = (targetSignature.match(/\d+/g) || []).sort().join(',');

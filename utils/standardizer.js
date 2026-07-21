@@ -27,14 +27,13 @@ async function standardizeProduct(product, supplierName, categories = [], produc
     
     // We are CLEARCUTTING the original supplier junk tags. We ONLY want the AI categories.
     let finalTagsArray = [...categories];
-    
-    // Add the AI Fingerprint as a hidden tag for the Duplicate Catcher
-    if (coreSignature && coreSignature.length > 2) {
-        const cleanSignature = coreSignature.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '');
-        finalTagsArray.push(`Signature:${cleanSignature}`);
-    }
-
     const cleanTags = Array.from(new Set(finalTagsArray)).join(', ');
+
+    // Extract signature to be saved in the hidden metafield vault (fully hidden from UI/shoppers)
+    let cleanSignature = "";
+    if (coreSignature && coreSignature.length > 2) {
+        cleanSignature = coreSignature.toLowerCase().trim().replace(/[^a-z0-9\s]/g, '');
+    }
 
     // The ultimate SEO cache to protect against dropship apps overwriting our data
     const seoCache = {
@@ -42,7 +41,8 @@ async function standardizeProduct(product, supplierName, categories = [], produc
         body_html: seoDescription || product.body_html,
         tags: cleanTags,
         vendor: cleanVendor,
-        product_type: productType
+        product_type: productType,
+        signature: cleanSignature
     };
 
     // INFINITE LOOP PROTECTION: Check if it's already updated
