@@ -90,11 +90,8 @@ Product Description: ${cleanDescription}
             const seo_title = data.seo_title || title;
             const metafields = data.metafields && Array.isArray(data.metafields) ? data.metafields : [];
             
-            // Append the extracted media back to the bottom of the AI's clean HTML description
-            let seo_description = data.seo_description || cleanDescription;
-            if (mediaHtml.length > 0) {
-                seo_description += `\n<br>\n<div class="product-media-gallery">\n${mediaHtml}\n</div>`;
-            }
+            // Return the AI description directly (excluding raw supplier images since they are in the media gallery)
+            const seo_description = data.seo_description || cleanDescription;
 
             return { core_signature, tags, category, seo_title, seo_description, metafields };
         } catch (parseError) {
