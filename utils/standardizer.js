@@ -246,14 +246,15 @@ async function standardizeProduct(product, supplierName, categories = [], produc
             // Parse color, material, and breed fit/animal types to dynamically populate Shopify standard fields
             const colorField = metafields.find(f => f.key === 'color');
             if (colorField && colorField.value) {
-                const cleanVal = String(colorField.value).toLowerCase().trim();
-                const matchedGid = TAXONOMY_VALUES_MAP[cleanVal];
-                if (matchedGid) {
+                // Split multi-variant colors (e.g. "Yellow, Black, Red") and resolve each
+                const colorValues = String(colorField.value).split(',').map(v => v.toLowerCase().trim());
+                const matchedGids = colorValues.map(v => TAXONOMY_VALUES_MAP[v]).filter(Boolean);
+                if (matchedGids.length > 0) {
                     graphqlMetafields.push({
                         ownerId: productGid,
                         namespace: 'shopify',
                         key: 'color-pattern',
-                        value: JSON.stringify([matchedGid]),
+                        value: JSON.stringify(matchedGids),
                         type: 'list.metaobject_reference'
                     });
                 }
@@ -261,14 +262,15 @@ async function standardizeProduct(product, supplierName, categories = [], produc
 
             const materialField = metafields.find(f => f.key === 'material');
             if (materialField && materialField.value) {
-                const cleanVal = String(materialField.value).toLowerCase().trim();
-                const matchedGid = TAXONOMY_VALUES_MAP[cleanVal];
-                if (matchedGid) {
+                // Split multi-variant materials (e.g. "Nylon, Steel") and resolve each
+                const materialValues = String(materialField.value).split(',').map(v => v.toLowerCase().trim());
+                const matchedGids = materialValues.map(v => TAXONOMY_VALUES_MAP[v]).filter(Boolean);
+                if (matchedGids.length > 0) {
                     graphqlMetafields.push({
                         ownerId: productGid,
                         namespace: 'shopify',
                         key: 'material',
-                        value: JSON.stringify([matchedGid]),
+                        value: JSON.stringify(matchedGids),
                         type: 'list.metaobject_reference'
                     });
                 }

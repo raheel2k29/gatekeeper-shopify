@@ -139,7 +139,50 @@ async function processProduct(product) {
 
         // Step 2: AI Categorization Engine (Using standard gemini-1.5-flash as the fallback)
         const aiResult = await categorizeProduct(product.title, product.body_html || "");
-        const { core_signature, tags, category, seo_title, seo_description, metafields } = aiResult;
+        let { core_signature, tags, category, seo_title, seo_description, metafields } = aiResult;
+
+        // --- LOCAL $0 CREDIT VARIANT EXTRACTOR ---
+        // Dynamically scans variant option lists (Color, Size, Material) in the payload and prioritizes them over description-derived AI text.
+        const variantColors = [];
+        const variantSizes = [];
+        const variantMaterials = [];
+
+        if (product.options && Array.isArray(product.options)) {
+            product.options.forEach(opt => {
+                const optName = (opt.name || '').toLowerCase();
+                const values = opt.values || [];
+
+                if (optName.includes('color') || optName.includes('colour') || optName.includes('pattern')) {
+                    variantColors.push(...values);
+                } else if (optName.includes('size') || optName.includes('fit') || optName.includes('dimension')) {
+                    variantSizes.push(...values);
+                } else if (optName.includes('material') || optName.includes('fabric')) {
+                    variantMaterials.push(...values);
+                }
+            });
+        }
+
+        // Clean arrays and unique-ify
+        const cleanColors = Array.from(new Set(variantColors.filter(Boolean))).join(', ');
+        const cleanSizes = Array.from(new Set(variantSizes.filter(Boolean))).join(', ');
+        const cleanMaterials = Array.from(new Set(variantMaterials.filter(Boolean))).join(', ');
+
+        // Update metafields array prioritizing Variant options first, fallback to AI values
+        if (cleanColors) {
+            const existingColorIdx = metafields.findIndex(m => m.key === 'color');
+            if (existingColorIdx !== -1) metafields[existingColorIdx].value = cleanColors;
+            else metafields.push({ key: 'color', value: cleanColors });
+        }
+        if (cleanSizes) {
+            const existingSizeIdx = metafields.findIndex(m => m.key === 'size');
+            if (existingSizeIdx !== -1) metafields[existingSizeIdx].value = cleanSizes;
+            else metafields.push({ key: 'size', value: cleanSizes });
+        }
+        if (cleanMaterials) {
+            const existingMaterialIdx = metafields.findIndex(m => m.key === 'material');
+            if (existingMaterialIdx !== -1) metafields[existingMaterialIdx].value = cleanMaterials;
+            else metafields.push({ key: 'material', value: cleanMaterials });
+        }
 
         console.log(`[Gatekeeper] 🧠 AI Categorization Complete: ${category} | Tags: ${tags.join(', ')}`);
 
