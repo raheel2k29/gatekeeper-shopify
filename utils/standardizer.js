@@ -171,6 +171,67 @@ async function standardizeProduct(product, supplierName, categories = [], produc
                 disclosures: { namespace: 'pns', type: 'multi_line_text_field' }
             };
 
+            // --- HYBRID CATEGORY METAFELDS RESOLVER ---
+            // Maps common textual values into Shopify's standard taxonomy metafields safely (excluding custom unmapped values to prevent validation errors)
+            const TAXONOMY_VALUES_MAP = {
+                // Animals (animal-type)
+                "dog": "gid://shopify/TaxonomyValue/8225",
+                "dogs": "gid://shopify/TaxonomyValue/8225",
+                "cat": "gid://shopify/TaxonomyValue/8223",
+                "cats": "gid://shopify/TaxonomyValue/8223",
+                "bird": "gid://shopify/TaxonomyValue/16979",
+                "birds": "gid://shopify/TaxonomyValue/16979",
+                "rabbit": "gid://shopify/TaxonomyValue/7571",
+                "rabbits": "gid://shopify/TaxonomyValue/7571",
+
+                // Colors (color-pattern)
+                "striped": "gid://shopify/TaxonomyValue/24477",
+                "black": "gid://shopify/TaxonomyValue/1",
+                "blue": "gid://shopify/TaxonomyValue/2",
+                "brown": "gid://shopify/TaxonomyValue/17",
+                "gold": "gid://shopify/TaxonomyValue/4",
+                "gray": "gid://shopify/TaxonomyValue/6",
+                "grey": "gid://shopify/TaxonomyValue/6",
+                "green": "gid://shopify/TaxonomyValue/7",
+                "orange": "gid://shopify/TaxonomyValue/9",
+                "pink": "gid://shopify/TaxonomyValue/10",
+                "purple": "gid://shopify/TaxonomyValue/12",
+                "red": "gid://shopify/TaxonomyValue/13",
+                "silver": "gid://shopify/TaxonomyValue/5",
+                "white": "gid://shopify/TaxonomyValue/3",
+                "yellow": "gid://shopify/TaxonomyValue/14",
+
+                // Materials (material)
+                "acrylic": "gid://shopify/TaxonomyValue/67",
+                "aluminum": "gid://shopify/TaxonomyValue/1637",
+                "bamboo": "gid://shopify/TaxonomyValue/22509",
+                "brass": "gid://shopify/TaxonomyValue/656",
+                "bronze": "gid://shopify/TaxonomyValue/16936",
+                "canvas": "gid://shopify/TaxonomyValue/605",
+                "cardboard": "gid://shopify/TaxonomyValue/773",
+                "ceramic": "gid://shopify/TaxonomyValue/643",
+                "clay": "gid://shopify/TaxonomyValue/879",
+                "copper": "gid://shopify/TaxonomyValue/666",
+                "cork": "gid://shopify/TaxonomyValue/596",
+                "cotton": "gid://shopify/TaxonomyValue/40",
+                "glass": "gid://shopify/TaxonomyValue/644",
+                "hemp": "gid://shopify/TaxonomyValue/608",
+                "iron": "gid://shopify/TaxonomyValue/613",
+                "leather": "gid://shopify/TaxonomyValue/759",
+                "linen": "gid://shopify/TaxonomyValue/614",
+                "metal": "gid://shopify/TaxonomyValue/615",
+                "nylon": "gid://shopify/TaxonomyValue/616",
+                "paper": "gid://shopify/TaxonomyValue/775",
+                "plastic": "gid://shopify/TaxonomyValue/617",
+                "polyester": "gid://shopify/TaxonomyValue/618",
+                "rubber": "gid://shopify/TaxonomyValue/764",
+                "silicone": "gid://shopify/TaxonomyValue/809",
+                "silk": "gid://shopify/TaxonomyValue/22531",
+                "steel": "gid://shopify/TaxonomyValue/620",
+                "wood": "gid://shopify/TaxonomyValue/625",
+                "wool": "gid://shopify/TaxonomyValue/51"
+            };
+
             const graphqlMetafields = metafields.map(field => {
                 const def = METAFIELD_DEFS[field.key] || { namespace: 'custom', type: 'single_line_text_field' };
                 return {
@@ -180,6 +241,46 @@ async function standardizeProduct(product, supplierName, categories = [], produc
                     value: String(field.value),
                     type: def.type
                 };
+            });
+
+            // Parse color, material, and breed fit/animal types to dynamically populate Shopify standard fields
+            const colorField = metafields.find(f => f.key === 'color');
+            if (colorField && colorField.value) {
+                const cleanVal = String(colorField.value).toLowerCase().trim();
+                const matchedGid = TAXONOMY_VALUES_MAP[cleanVal];
+                if (matchedGid) {
+                    graphqlMetafields.push({
+                        ownerId: productGid,
+                        namespace: 'shopify',
+                        key: 'color-pattern',
+                        value: JSON.stringify([matchedGid]),
+                        type: 'list.metaobject_reference'
+                    });
+                }
+            }
+
+            const materialField = metafields.find(f => f.key === 'material');
+            if (materialField && materialField.value) {
+                const cleanVal = String(materialField.value).toLowerCase().trim();
+                const matchedGid = TAXONOMY_VALUES_MAP[cleanVal];
+                if (matchedGid) {
+                    graphqlMetafields.push({
+                        ownerId: productGid,
+                        namespace: 'shopify',
+                        key: 'material',
+                        value: JSON.stringify([matchedGid]),
+                        type: 'list.metaobject_reference'
+                    });
+                }
+            }
+
+            // Always default standard animal type to Dogs since this is a dog/pet gear store
+            graphqlMetafields.push({
+                ownerId: productGid,
+                namespace: 'shopify',
+                key: 'animal-type',
+                value: JSON.stringify(["gid://shopify/TaxonomyValue/8225"]), // Dogs
+                type: 'list.metaobject_reference'
             });
 
             const graphqlQuery = `
@@ -217,7 +318,7 @@ async function standardizeProduct(product, supplierName, categories = [], produc
             } else if (gqlData.data?.metafieldsSet?.userErrors?.length > 0) {
                 console.error(`[Standardizer] Metafields UserErrors:`, JSON.stringify(gqlData.data.metafieldsSet.userErrors));
             } else {
-                console.log(`[Standardizer] Successfully injected ${metafields.length} Metafields via GraphQL.`);
+                console.log(`[Standardizer] Successfully injected ${graphqlMetafields.length} Metafields (including Category Metafields) via GraphQL.`);
             }
         }
 
