@@ -164,7 +164,7 @@ async function standardizeProduct(product, supplierName, categories = [], produc
                 color: { namespace: 'pns', type: 'single_line_text_field' },
                 size: { namespace: 'pns', type: 'single_line_text_field' },
                 breed_fit: { namespace: 'pns', type: 'multi_line_text_field' },
-                features: { namespace: 'pns', type: 'multi_line_text_field' },
+                features: { namespace: 'custom', key: 'key_features', type: 'list.single_line_text_field' },
                 care: { namespace: 'pns', type: 'multi_line_text_field' },
                 safety: { namespace: 'pns', type: 'multi_line_text_field' },
                 keywords: { namespace: 'pns', type: 'multi_line_text_field' },
@@ -233,15 +233,36 @@ async function standardizeProduct(product, supplierName, categories = [], produc
             };
 
             const graphqlMetafields = metafields.map(field => {
-                const def = METAFIELD_DEFS[field.key] || { namespace: 'custom', type: 'single_line_text_field' };
+                const def = METAFIELD_DEFS[field.key] || { namespace: 'custom', key: field.key, type: 'single_line_text_field' };
+                const finalKey = def.key || field.key;
+                
+                // Formulate value formatting based on type (e.g. list types require JSON array string)
+                let finalVal = String(field.value);
+                if (def.type === 'list.single_line_text_field') {
+                    // Split key features into a clean array
+                    const items = String(field.value).split(',').map(item => item.trim()).filter(Boolean);
+                    finalVal = JSON.stringify(items);
+                }
+
                 return {
                     ownerId: productGid,
                     namespace: def.namespace,
-                    key: field.key,
-                    value: String(field.value),
+                    key: finalKey,
+                    value: finalVal,
                     type: def.type
                 };
             });
+
+            // Auto-append the Supplier name directly to the custom.supplier metafield box
+            if (cleanVendor) {
+                graphqlMetafields.push({
+                    ownerId: productGid,
+                    namespace: 'custom',
+                    key: 'supplier',
+                    value: cleanVendor,
+                    type: 'single_line_text_field'
+                });
+            }
 
 
 
