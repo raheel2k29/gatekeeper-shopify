@@ -232,14 +232,29 @@ async function standardizeProduct(product, supplierName, categories = [], produc
                 "wool": "gid://shopify/TaxonomyValue/51"
             };
 
-            const graphqlMetafields = metafields.map(field => {
+            // Dynamic Automated Fallback Router:
+            // Ensure disclosures fallback to safety notes if safety is not populated (to always fill the Safety Notes box)
+            const resolvedMetafields = [...metafields];
+            const safetyIdx = resolvedMetafields.findIndex(m => m.key === 'safety');
+            const disclosureField = resolvedMetafields.find(m => m.key === 'disclosures');
+
+            if (disclosureField && disclosureField.value && disclosureField.value !== 'none') {
+                if (safetyIdx !== -1 && resolvedMetafields[safetyIdx].value) {
+                    // Append disclosures to safety if both present
+                    resolvedMetafields[safetyIdx].value = resolvedMetafields[safetyIdx].value + '. ' + disclosureField.value;
+                } else if (safetyIdx === -1) {
+                    // Route disclosures directly to the safety key
+                    resolvedMetafields.push({ key: 'safety', value: disclosureField.value });
+                }
+            }
+
+            const graphqlMetafields = resolvedMetafields.map(field => {
                 const def = METAFIELD_DEFS[field.key] || { namespace: 'custom', key: field.key, type: 'single_line_text_field' };
                 const finalKey = def.key || field.key;
                 
                 // Formulate value formatting based on type (e.g. list types require JSON array string)
                 let finalVal = String(field.value);
                 if (def.type === 'list.single_line_text_field') {
-                    // Split key features into a clean array
                     const items = String(field.value).split(',').map(item => item.trim()).filter(Boolean);
                     finalVal = JSON.stringify(items);
                 }
