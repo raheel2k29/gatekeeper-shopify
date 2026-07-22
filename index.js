@@ -61,6 +61,10 @@ app.post('/webhook/products/create', async (req, res) => {
 
 async function processProduct(product) {
     try {
+        // --- EMERGENCY PAUSE LOCK ---
+        console.log(`[Gatekeeper] 🛑 EMERGENCY PAUSE ACTIVE. Ignoring webhook event.`);
+        return;
+        
         // EARLY EXIT: If the product already has a Product Type that matches one of our 
         // exact 114 Mega Menu Categories (or it failed and is awaiting manual review), 
         // it means Gatekeeper has already fully processed it.
