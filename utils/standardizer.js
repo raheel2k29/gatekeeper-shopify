@@ -165,7 +165,7 @@ async function standardizeProduct(product, supplierName, categories = [], produc
                 size: { namespace: 'pns', type: 'single_line_text_field' },
                 breed_fit: { namespace: 'pns', type: 'multi_line_text_field' },
                 features: { namespace: 'custom', key: 'key_features', type: 'list.single_line_text_field' },
-                care: { namespace: 'pns', type: 'multi_line_text_field' },
+                care: { namespace: 'pns', key: 'care_instr', type: 'multi_line_text_field' },
                 safety: { namespace: 'pns', type: 'multi_line_text_field' },
                 keywords: { namespace: 'pns', type: 'multi_line_text_field' },
                 disclosures: { namespace: 'pns', type: 'multi_line_text_field' }
