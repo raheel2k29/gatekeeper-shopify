@@ -516,27 +516,86 @@ ${product.metafields.map(m => `        &lt;li&gt;${m}&lt;/li&gt;`).join('\n')}
     // Auto-pilot loop
     setInterval(checkAutoPilot, 2000);
 
+    // Active Suppliers state for Routing tab
+    const activeSuppliers = {
+        'Zendrop': true,
+        'CJ Dropshipping': true,
+        'TopDawg': true,
+        'Wholesale2B': true
+    };
+
+    document.querySelectorAll('.api-toggle').forEach(toggle => {
+        toggle.addEventListener('change', (e) => {
+            const supplier = e.target.getAttribute('data-supplier');
+            activeSuppliers[supplier] = e.target.checked;
+            
+            // Visual badge update
+            const card = e.target.closest('.supplier-config-card');
+            const badge = card.querySelector('.api-badge');
+            if(e.target.checked) {
+                badge.innerHTML = `<span class="pulse-dot" style="background: var(--accent-cyan); width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span> API: ONLINE (${Math.floor(Math.random()*40 + 10)}ms)`;
+                badge.style.color = 'var(--accent-cyan)';
+            } else {
+                badge.innerHTML = `<span style="background: var(--text-dim); width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span> API: PAUSED`;
+                badge.style.color = 'var(--text-dim)';
+            }
+            
+            // Add log
+            const terminal = document.getElementById('fulfillment-log-output');
+            if(terminal) {
+                const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+                const line = document.createElement('div');
+                line.className = 'log-line';
+                if(!e.target.checked) {
+                    line.innerHTML = `<span class="time">[${time}]</span> <span class="warning">[${supplier} API paused by user]</span>`;
+                } else {
+                    line.innerHTML = `<span class="time">[${time}]</span> <span class="success">[${supplier} API connection restored]</span>`;
+                }
+                terminal.appendChild(line);
+                terminal.scrollTop = terminal.scrollHeight;
+            }
+            
+            // Update node visual
+            const node = document.querySelector(`.node.supplier-node[data-supplier="${supplier}"]`);
+            if(node) {
+                if(!e.target.checked) {
+                    node.style.opacity = '0.5';
+                    node.style.filter = 'grayscale(100%)';
+                } else {
+                    node.style.opacity = '1';
+                    node.style.filter = 'none';
+                }
+            }
+        });
+    });
+
     // Fulfillment Sync Logs Loop
     const fulfillmentTerminal = document.getElementById('fulfillment-log-output');
     if (fulfillmentTerminal) {
         const orderLogs = [
-            ["Order #1024 synced to TopDawg API... [Checking stock...]", "info"],
-            ["TopDawg SKU out of stock. Triggering Priority 2 Routing...", "warning"],
-            ["CJ Dropshipping API connected... [Order submitted successfully]", "success"],
-            ["Tracking ID synced to customer email.", "success"],
-            ["Order #1025 synced to TopDawg API... [Checking stock...]", "info"],
-            ["TopDawg SKU verified. US Warehouse matched.", "success"],
-            ["Order submitted to TopDawg... [Awaiting tracking]", "info"],
-            ["Order #1026 received. Mapping SKU across priority chain...", "info"],
-            ["Priority 1 (TopDawg) fails. Priority 2 (CJ) fails. Triggering Zendrop (Failsafe)...", "warning"],
-            ["Zendrop API connected... [Order submitted via Failsafe]", "success"]
+            ["Order #1024 synced to TopDawg API... [Checking stock...]", "info", "TopDawg"],
+            ["TopDawg SKU out of stock. Triggering Priority 2 Routing...", "warning", "TopDawg"],
+            ["CJ Dropshipping API connected... [Order submitted successfully]", "success", "CJ Dropshipping"],
+            ["Tracking ID synced to customer email.", "success", null],
+            ["Order #1025 synced to TopDawg API... [Checking stock...]", "info", "TopDawg"],
+            ["TopDawg SKU verified. US Warehouse matched.", "success", "TopDawg"],
+            ["Order submitted to TopDawg... [Awaiting tracking]", "info", "TopDawg"],
+            ["Order #1026 received. Mapping SKU across priority chain...", "info", null],
+            ["Priority 1 (TopDawg) fails. Priority 2 (CJ) fails. Triggering Zendrop (Failsafe)...", "warning", null],
+            ["Zendrop API connected... [Order submitted via Failsafe]", "success", "Zendrop"]
         ];
         
         let logIndex = 0;
         let orderNumber = 1027;
         
         setInterval(() => {
-            let [text, type] = orderLogs[logIndex];
+            let [text, type, supplierReq] = orderLogs[logIndex];
+            
+            // If the supplier for this log is paused, skip printing this specific regular log
+            if (supplierReq && !activeSuppliers[supplierReq]) {
+                logIndex = (logIndex + 1) % orderLogs.length;
+                return;
+            }
             
             // Randomize order numbers slightly for realism on loop
             if (logIndex === 0) text = `Order #${orderNumber} synced to TopDawg API... [Checking stock...]`;

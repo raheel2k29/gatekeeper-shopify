@@ -28,6 +28,15 @@
                     </svg>
                     Catalog Manager
                 </li>
+                <li data-target="routing">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="1" y="3" width="15" height="13"></rect>
+                        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon>
+                        <circle cx="5.5" cy="18.5" r="2.5"></circle>
+                        <circle cx="18.5" cy="18.5" r="2.5"></circle>
+                    </svg>
+                    Order Routing
+                </li>
                 <li data-target="settings">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3"/>
@@ -214,6 +223,167 @@
                 </div>
             </section>
 
+            <!-- Order Routing Section -->
+            <section id="routing" class="view-section">
+                <header class="section-header">
+                    <h1>Order Routing & Supplier Sync</h1>
+                    <p>Manage multi-channel fulfillment rules, API configurations, and failsafe mappings.</p>
+                </header>
+
+                <div class="supplier-config-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+                    <!-- Zendrop -->
+                    <div class="supplier-config-card" style="background: var(--bg-card); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3 style="margin:0;">Zendrop</h3>
+                            <span class="api-badge" style="color: var(--accent-cyan); font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem;"><span class="pulse-dot" style="background: var(--accent-cyan); width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span> API: ONLINE (24ms)</span>
+                        </div>
+                        <div class="setting-item" style="margin-bottom: 1rem; display: flex; justify-content: space-between;">
+                            <span>Auto-Submit Orders</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="api-toggle" data-supplier="Zendrop" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label style="font-size: 0.8rem; color: var(--text-dim); display:block; margin-bottom: 0.3rem;">Shipping Cost Offset</label>
+                            <input type="text" value="+$4.99" style="width: 100%; padding: 0.5rem; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.8rem; color: var(--text-dim); display:block; margin-bottom: 0.3rem;">Stock Sync Frequency</label>
+                            <select style="width: 100%; padding: 0.5rem; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px;">
+                                <option>Real-Time</option>
+                                <option>Every 1 hour</option>
+                                <option>Every 12 hours</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- CJ Dropshipping -->
+                    <div class="supplier-config-card" style="background: var(--bg-card); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3 style="margin:0;">CJ Dropshipping</h3>
+                            <span class="api-badge" style="color: var(--accent-cyan); font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem;"><span class="pulse-dot" style="background: var(--accent-cyan); width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span> API: ONLINE (32ms)</span>
+                        </div>
+                        <div class="setting-item" style="margin-bottom: 1rem; display: flex; justify-content: space-between;">
+                            <span>Auto-Submit Orders</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="api-toggle" data-supplier="CJ Dropshipping" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label style="font-size: 0.8rem; color: var(--text-dim); display:block; margin-bottom: 0.3rem;">Shipping Cost Offset</label>
+                            <input type="text" value="+$2.99" style="width: 100%; padding: 0.5rem; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.8rem; color: var(--text-dim); display:block; margin-bottom: 0.3rem;">Stock Sync Frequency</label>
+                            <select style="width: 100%; padding: 0.5rem; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px;">
+                                <option>Every 1 hour</option>
+                                <option>Real-Time</option>
+                                <option>Every 12 hours</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- TopDawg -->
+                    <div class="supplier-config-card" style="background: var(--bg-card); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3 style="margin:0;">TopDawg</h3>
+                            <span class="api-badge" style="color: var(--accent-cyan); font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem;"><span class="pulse-dot" style="background: var(--accent-cyan); width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span> API: ONLINE (15ms)</span>
+                        </div>
+                        <div class="setting-item" style="margin-bottom: 1rem; display: flex; justify-content: space-between;">
+                            <span>Auto-Submit Orders</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="api-toggle" data-supplier="TopDawg" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label style="font-size: 0.8rem; color: var(--text-dim); display:block; margin-bottom: 0.3rem;">Shipping Cost Offset</label>
+                            <input type="text" value="+$5.50" style="width: 100%; padding: 0.5rem; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.8rem; color: var(--text-dim); display:block; margin-bottom: 0.3rem;">Stock Sync Frequency</label>
+                            <select style="width: 100%; padding: 0.5rem; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px;">
+                                <option>Real-Time</option>
+                                <option>Every 1 hour</option>
+                                <option>Every 12 hours</option>
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Wholesale2B -->
+                    <div class="supplier-config-card" style="background: var(--bg-card); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <h3 style="margin:0;">Wholesale2B</h3>
+                            <span class="api-badge" style="color: var(--accent-cyan); font-size: 0.8rem; display: flex; align-items: center; gap: 0.5rem;"><span class="pulse-dot" style="background: var(--accent-cyan); width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span> API: ONLINE (45ms)</span>
+                        </div>
+                        <div class="setting-item" style="margin-bottom: 1rem; display: flex; justify-content: space-between;">
+                            <span>Auto-Submit Orders</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" class="api-toggle" data-supplier="Wholesale2B" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div style="margin-bottom: 1rem;">
+                            <label style="font-size: 0.8rem; color: var(--text-dim); display:block; margin-bottom: 0.3rem;">Shipping Cost Offset</label>
+                            <input type="text" value="+$3.50" style="width: 100%; padding: 0.5rem; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.8rem; color: var(--text-dim); display:block; margin-bottom: 0.3rem;">Stock Sync Frequency</label>
+                            <select style="width: 100%; padding: 0.5rem; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px;">
+                                <option>Every 1 hour</option>
+                                <option>Real-Time</option>
+                                <option>Every 12 hours</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="routing-layout" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                    <div class="routing-map" style="background: var(--bg-card); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <h3 style="margin-top:0;">Supply Chain Priority Map</h3>
+                        <div class="map-path" style="margin-top: 2rem;">
+                            <div class="node customer-node">
+                                <div class="node-icon">🛒</div>
+                                <div class="node-label">Customer Order</div>
+                            </div>
+                            <div class="path-connector active"></div>
+                            <div class="node supplier-node priority-1" data-supplier="TopDawg">
+                                <div class="node-badge">Priority 1</div>
+                                <div class="node-title">TopDawg</div>
+                                <div class="node-sub">US Stock Only</div>
+                                <input type="text" class="margin-input" value="Min Margin: 25%">
+                            </div>
+                            <div class="path-connector"></div>
+                            <div class="node supplier-node priority-2" data-supplier="CJ Dropshipping">
+                                <div class="node-badge">Priority 2</div>
+                                <div class="node-title">CJ Dropshipping</div>
+                                <div class="node-sub">Global Stock</div>
+                                <input type="text" class="margin-input" value="Min Margin: 30%">
+                            </div>
+                            <div class="path-connector"></div>
+                            <div class="node supplier-node priority-3 failsafe" data-supplier="Zendrop">
+                                <div class="node-badge failsafe-badge">Priority 3 (Failsafe)</div>
+                                <div class="node-title">Zendrop</div>
+                                <div class="node-sub">Auto-AliExpress</div>
+                                <input type="text" class="margin-input" value="Min Margin: 15%">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="fulfillment-terminal">
+                        <div class="terminal-header">
+                            <div class="mac-btns"><span></span><span></span><span></span></div>
+                            <div class="terminal-title">live-fulfillment-sync.log</div>
+                            <div class="status-indicator">
+                                <span class="pulse-dot"></span> SYNCING
+                            </div>
+                        </div>
+                        <div class="terminal-body" id="fulfillment-log-output" style="height: 400px; font-family: monospace;">
+                            <!-- Populated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Settings Section -->
             <section id="settings" class="view-section">
                 <header class="section-header">
@@ -290,56 +460,6 @@
                     </div>
                 </div>
 
-                <div class="settings-full-card mt-2">
-                    <h2>Supplier Sync & Priority Order Routing</h2>
-                    <p class="desc">Configure margin thresholds and real-time order routing paths.</p>
-                    
-                    <div class="routing-manager">
-                        <div class="routing-map">
-                            <h3>Supply Chain Priority Map</h3>
-                            <div class="map-path">
-                                <div class="node customer-node">
-                                    <div class="node-icon">🛒</div>
-                                    <div class="node-label">Customer Order</div>
-                                </div>
-                                <div class="path-connector active"></div>
-                                <div class="node supplier-node priority-1">
-                                    <div class="node-badge">Priority 1</div>
-                                    <div class="node-title">TopDawg</div>
-                                    <div class="node-sub">US Stock Only</div>
-                                    <input type="text" class="margin-input" value="Min Margin: 25%">
-                                </div>
-                                <div class="path-connector"></div>
-                                <div class="node supplier-node priority-2">
-                                    <div class="node-badge">Priority 2</div>
-                                    <div class="node-title">CJ Dropshipping</div>
-                                    <div class="node-sub">Global Stock</div>
-                                    <input type="text" class="margin-input" value="Min Margin: 30%">
-                                </div>
-                                <div class="path-connector"></div>
-                                <div class="node supplier-node priority-3 failsafe">
-                                    <div class="node-badge failsafe-badge">Priority 3 (Failsafe)</div>
-                                    <div class="node-title">Zendrop</div>
-                                    <div class="node-sub">Auto-AliExpress</div>
-                                    <input type="text" class="margin-input" value="Min Margin: 15%">
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="fulfillment-terminal">
-                            <div class="terminal-header">
-                                <div class="mac-btns"><span></span><span></span><span></span></div>
-                                <div class="terminal-title">live-fulfillment-sync.log</div>
-                                <div class="status-indicator">
-                                    <span class="pulse-dot"></span> SYNCING
-                                </div>
-                            </div>
-                            <div class="terminal-body" id="fulfillment-log-output">
-                                <!-- Populated by JS -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </section>
         </main>
     </div>
