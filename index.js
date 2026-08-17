@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const { identifySupplier } = require('./utils/identifier');
 const { standardizeProduct } = require('./utils/standardizer');
 const { categorizeProduct } = require('./utils/categorizer');
@@ -11,6 +12,13 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
+
+// Serve Portfolio CMS static files publicly
+app.use(express.static(path.join(__dirname, 'gatekeeper-portfolio-cms')));
+
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'gatekeeper-portfolio-cms', 'index.html'));
+});
 
 // In-Memory Thread Lock Cache to drop parallel webhooks for the same product
 const activeLocks = new Set();
