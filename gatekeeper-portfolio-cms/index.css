@@ -569,6 +569,32 @@ body {
 .log-line .warning { color: #d29922; }
 
 /* Catalog Layout */
+.catalog-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+.catalog-tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+.catalog-tab-btn:hover {
+    background-color: var(--bg-hover);
+    color: var(--text-main);
+}
+.catalog-tab-btn.active {
+    background-color: var(--accent-cyan-dim);
+    color: var(--accent-cyan);
+}
 .catalog-layout {
     display: grid;
     grid-template-columns: 350px 1fr;

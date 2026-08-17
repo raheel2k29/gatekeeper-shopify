@@ -63,16 +63,41 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     ];
 
+    const mockDuplicates = [
+        {
+            id: 'dup_1',
+            title: 'Waterproof Electric Dog Training Collar',
+            supplier: 'AliExpress',
+            rawDesc: 'NEW 2023 Waterproof dog collar electric shock training... 100% QUALITY',
+            isDuplicate: true,
+            matchedSku: 'Dog Collar Premium - 2022 Edition',
+            similarity: 92
+        }
+    ];
+
+    let currentCatalogTab = 'imported';
+
     const productListEl = document.getElementById('product-list');
     const productDetailsEl = document.getElementById('product-details');
 
     function renderProductList() {
         productListEl.innerHTML = '';
-        mockProducts.forEach(product => {
+        
+        const listToRender = currentCatalogTab === 'imported' ? mockProducts : mockDuplicates;
+        
+        document.getElementById('count-imported').innerText = mockProducts.length;
+        document.getElementById('count-duplicates').innerText = mockDuplicates.length;
+
+        if (listToRender.length === 0) {
+            productListEl.innerHTML = '<div class="empty-state" style="padding:1rem;">No items found.</div>';
+            return;
+        }
+
+        listToRender.forEach(product => {
             const item = document.createElement('div');
             item.className = 'product-item';
             item.innerHTML = `
-                <h4>${product.title}</h4>
+                <h4>${product.isDuplicate ? '<span style="color:#ff5f56; margin-right:4px;">[DUP]</span>' : ''}${product.title}</h4>
                 <p>${product.supplier}</p>
             `;
             item.addEventListener('click', () => {
@@ -84,7 +109,45 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Catalog Tabs Logic
+    const catalogTabBtns = document.querySelectorAll('.catalog-tab-btn');
+    catalogTabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            catalogTabBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentCatalogTab = btn.getAttribute('data-catalog-tab');
+            productDetailsEl.innerHTML = '<div class="empty-state">Select a product to view details</div>';
+            renderProductList();
+        });
+    });
+
     function renderProductDetails(product) {
+        if (product.isDuplicate) {
+            productDetailsEl.innerHTML = `
+                <div class="details-content">
+                    <div class="details-header">
+                        <h2 style="color:#ff5f56;">${product.title}</h2>
+                        <span class="supplier-badge">${product.supplier}</span>
+                    </div>
+                    <div style="background-color:rgba(255,95,86,0.1); border-left:4px solid #ff5f56; padding:1rem; border-radius:4px; margin-bottom:1.5rem;">
+                        <strong style="color:#ff5f56; display:block; margin-bottom:0.5rem;">🛑 DUPLICATE DETECTED</strong>
+                        <p style="margin:0; font-size:0.9rem; color:var(--text-main);">This product matches <strong>${product.matchedSku}</strong> (Similarity: ${product.similarity}%). Automatically moved to Drafts and tagged as Duplicate.</p>
+                    </div>
+                    <div class="tabs-container">
+                        <div class="tabs-header">
+                            <button class="tab-btn active" data-tab="tab-raw">Raw Payload (Incoming)</button>
+                        </div>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="tab-raw">
+                                <div class="raw-box">${product.rawDesc}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
         productDetailsEl.innerHTML = `
             <div class="details-content">
                 <div class="details-header">
@@ -154,6 +217,7 @@ ${product.metafields.map(m => `        &lt;li&gt;${m}&lt;/li&gt;`).join('\n')}
     // Stats elements
     const statSkus = document.getElementById('stat-skus');
     const statSavings = document.getElementById('stat-savings');
+    const statDuplicates = document.getElementById('stat-duplicates');
 
     let isProcessing = false;
     let autoPilotInterval = null;
@@ -299,6 +363,42 @@ ${product.metafields.map(m => `        &lt;li&gt;${m}&lt;/li&gt;`).join('\n')}
             addLogLine(`Authentication successful. Validating payload signature.`, 'info');
         }, 600);
 
+        if (prod.id === 'pend_1' || prod.title.toLowerCase().includes('duplicate')) {
+            setTimeout(() => {
+                setStep(2);
+                addLogLine(`[DuplicateScanner] 🚨 Duplicate caught! Matching Product ID: 10405132927276. Moving to Drafts.`, 'warning');
+                
+                // Update stats
+                let currentDups = parseInt(statDuplicates.innerText.replace(/,/g, ''));
+                animateValue(statDuplicates, currentDups, currentDups + 1, 1000);
+
+                // Add to mockDuplicates
+                const newDup = {
+                    id: 'dup_' + Date.now(),
+                    title: prod.title,
+                    supplier: prod.supplier,
+                    rawDesc: prod.rawDesc,
+                    isDuplicate: true,
+                    matchedSku: 'Existing Product 10405132927276',
+                    similarity: 98
+                };
+                mockDuplicates.unshift(newDup);
+
+                // Remove from pending
+                pendingProducts.splice(index, 1);
+                
+                // Re-render
+                renderFeed();
+                renderProductList();
+                
+                isProcessing = false;
+                
+                // Visual reset pipeline
+                setTimeout(() => setStep(0), 2000);
+            }, 1400);
+            return;
+        }
+
         setTimeout(() => {
             setStep(2);
             addLogLine(`Duplicate Scanner running: Dice coefficient comparison against cache.`, 'warning');
@@ -354,6 +454,9 @@ ${product.metafields.map(m => `        &lt;li&gt;${m}&lt;/li&gt;`).join('\n')}
             renderProductList();
             
             isProcessing = false;
+            
+            // Visual reset pipeline
+            setTimeout(() => setStep(0), 2000);
         }, 5800);
     }
 
