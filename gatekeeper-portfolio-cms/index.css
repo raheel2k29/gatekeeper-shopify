@@ -1,27 +1,43 @@
-/* Base & Variables */
 :root {
-    --bg-dark: hsl(220, 26%, 14%);
-    --bg-panel: hsl(222, 20%, 20%);
-    --bg-card: hsl(222, 24%, 25%);
-    --text-main: hsl(210, 20%, 98%);
-    --text-muted: hsl(215, 15%, 70%);
+    --bg-dark: #0a0a0c;
+    --bg-panel: #121317;
+    --bg-card: #18191e;
+    --text-main: #e2e8f0;
+    --text-muted: #8b949e;
     
-    --accent-emerald: hsl(150, 70%, 45%);
-    --accent-emerald-dim: hsla(150, 70%, 45%, 0.15);
+    --accent-emerald: #00ff88;
+    --accent-emerald-dim: rgba(0, 255, 136, 0.15);
     
-    --accent-cyan: hsl(190, 80%, 50%);
-    --accent-cyan-dim: hsla(190, 80%, 50%, 0.15);
+    --accent-cyan: #00e5ff;
+    --accent-cyan-dim: rgba(0, 229, 255, 0.15);
     
-    --accent-warning: hsl(40, 90%, 60%);
-    --accent-warning-dim: hsla(40, 90%, 60%, 0.15);
+    --accent-warning: #ffb86c;
+    --accent-warning-dim: rgba(255, 184, 108, 0.15);
     
-    --accent-highlight: hsl(280, 70%, 65%);
-    --accent-highlight-dim: hsla(280, 70%, 65%, 0.15);
+    --accent-highlight: #ff79c6; /* replaced with cyan mostly but kept for safety */
+    --accent-highlight-dim: rgba(255, 121, 198, 0.15);
 
-    --border-color: hsl(220, 20%, 30%);
+    --border-color: #2a2d36;
+    --border-glow: rgba(0, 229, 255, 0.4);
     
-    --font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    --font-family: 'Inter', system-ui, -apple-system, sans-serif;
     --transition-speed: 0.3s;
+}
+
+body::before {
+    content: '';
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0,0,0,0.15),
+        rgba(0,0,0,0.15) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.2;
 }
 
 * {
@@ -643,4 +659,192 @@ input:checked + .slider:before {
     .nav-links li { padding: 0.5rem 0.75rem; white-space: nowrap; font-size: 0.875rem; }
     .content-area { padding: 1.5rem; }
     .comparison-grid { grid-template-columns: 1fr; }
+}
+
+/* NEW: Live Metrics */
+.live-metrics {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    padding: 1rem 1.5rem;
+    background: rgba(0, 229, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.1) inset;
+}
+.metric {
+    display: flex;
+    flex-direction: column;
+}
+.metric-label {
+    font-size: 0.75rem;
+    color: var(--accent-cyan);
+    font-family: monospace;
+    letter-spacing: 1px;
+    margin-bottom: 0.25rem;
+}
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--text-main);
+    font-family: monospace;
+}
+
+/* NEW: Cybernetic Details on Panels */
+.panel {
+    position: relative;
+}
+.panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 20px; height: 2px;
+    background-color: var(--accent-cyan);
+}
+.panel::after {
+    content: '';
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 20px; height: 2px;
+    background-color: var(--accent-emerald);
+}
+.stat-card {
+    position: relative;
+    border: 1px solid var(--border-color);
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+.stat-card:hover {
+    box-shadow: 0 0 20px var(--accent-emerald-dim);
+}
+
+/* NEW: Pipeline Visualizer */
+.processing-panel {
+    display: flex;
+    flex-direction: column;
+}
+.pipeline-visualizer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.5rem;
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border-color);
+}
+.pipeline-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0.5;
+    transition: opacity 0.3s;
+}
+.pipeline-step.active, .pipeline-step.completed {
+    opacity: 1;
+}
+.step-indicator {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: var(--bg-dark);
+    border: 2px solid var(--border-color);
+    box-shadow: 0 0 0 rgba(0, 255, 136, 0);
+    transition: all 0.3s;
+}
+.pipeline-step.active .step-indicator {
+    border-color: var(--accent-emerald);
+    background-color: var(--accent-emerald-dim);
+    box-shadow: 0 0 10px var(--accent-emerald);
+    animation: pulse 1s infinite alternate;
+}
+.pipeline-step.completed .step-indicator {
+    background-color: var(--accent-emerald);
+    border-color: var(--accent-emerald);
+    box-shadow: 0 0 15px var(--accent-emerald);
+}
+.step-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    font-family: monospace;
+    text-align: center;
+}
+.pipeline-step.completed .step-label {
+    color: var(--accent-emerald);
+}
+.pipeline-connector {
+    flex: 1;
+    height: 2px;
+    background-color: var(--border-color);
+    margin: 0 0.5rem;
+    position: relative;
+    top: -10px;
+    transition: background-color 0.3s;
+}
+.pipeline-connector.active {
+    background-color: var(--accent-emerald);
+    box-shadow: 0 0 5px var(--accent-emerald);
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); box-shadow: 0 0 5px var(--accent-emerald); }
+    100% { transform: scale(1.2); box-shadow: 0 0 15px var(--accent-emerald); }
+}
+
+/* NEW: Tabs layout in Details pane */
+.tabs-header {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+.tab-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 0.5rem 1rem;
+    position: relative;
+    font-weight: 600;
+}
+.tab-btn.active {
+    color: var(--accent-cyan);
+}
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -0.5rem;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: var(--accent-cyan);
+    box-shadow: 0 -2px 5px var(--accent-cyan);
+}
+.tab-pane {
+    display: none;
+    animation: fadeIn 0.3s;
+}
+.tab-pane.active {
+    display: block;
+}
+
+.rendered-card {
+    background: var(--bg-card);
+    border: 1px solid var(--accent-emerald-dim);
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 255, 136, 0.05);
+}
+.rendered-card h3 { color: var(--accent-cyan); margin-bottom: 0.75rem; }
+.rendered-card p { margin-bottom: 1rem; font-size: 0.95rem; }
+
+.source-code {
+    background: #0d1117;
+    color: #e2e8f0;
+    font-family: monospace;
+    padding: 1.5rem;
+    border-radius: 8px;
+    border: 1px solid #30363d;
+    white-space: pre-wrap;
+    font-size: 0.85rem;
 }

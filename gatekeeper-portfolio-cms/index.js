@@ -1,4 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Live Metrics Simulator
+    const cpuEl = document.getElementById('metric-cpu');
+    const latencyEl = document.getElementById('metric-latency');
+    const tokensEl = document.getElementById('metric-tokens');
+
+    setInterval(() => {
+        if(cpuEl) cpuEl.innerText = Math.floor(Math.random() * 20 + 5) + '%';
+        if(latencyEl) latencyEl.innerText = Math.floor(Math.random() * 50 + 20) + 'ms';
+        if(tokensEl) tokensEl.innerText = Math.floor(Math.random() * 300 + 700) + ' t/s';
+    }, 1000);
+
     // Navigation Logic
     const navLinks = document.querySelectorAll('.nav-links li');
     const sections = document.querySelectorAll('.view-section');
@@ -80,41 +91,57 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h2>${product.title}</h2>
                     <span class="supplier-badge">${product.supplier}</span>
                 </div>
-                <div class="comparison-grid">
-                    <div class="comparison-col">
-                        <h3>
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M12 2L2 22h20L12 2z"/>
-                            </svg>
-                            Raw Supplier Data
-                        </h3>
-                        <div class="raw-box">${product.rawDesc}</div>
+                <div class="tabs-container">
+                    <div class="tabs-header">
+                        <button class="tab-btn active" data-tab="tab-before">Before (Supplier Data)</button>
+                        <button class="tab-btn" data-tab="tab-render">After (Visual Render)</button>
+                        <button class="tab-btn" data-tab="tab-source">After (HTML Source)</button>
                     </div>
-                    <div class="comparison-col">
-                        <h3>
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="var(--accent-emerald)" stroke-width="2">
-                                <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/>
-                                <polyline points="22 4 12 14.01 9 11.01"/>
-                            </svg>
-                            AI Optimized Result
-                        </h3>
-                        <div class="ai-box">
-                            <p>${product.aiDesc}</p>
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="tab-before">
+                            <div class="raw-box">${product.rawDesc}</div>
                         </div>
-                        <div class="metafields-box">
-                            <h4>Generated Tags</h4>
-                            <div style="margin: 0.5rem 0 1rem;">
-                                ${product.tags.map(t => `<span class="metafield-pill">${t}</span>`).join('')}
+                        <div class="tab-pane" id="tab-render">
+                            <div class="rendered-card">
+                                <h3>Overview</h3>
+                                <p>${product.aiDesc}</p>
+                                <h3>Key Specs</h3>
+                                <div class="metafields-box">
+                                    ${product.metafields.map(m => `<span class="metafield-pill" style="background: var(--accent-cyan-dim); color: var(--accent-cyan);">${m}</span>`).join('')}
+                                </div>
+                                <h3 style="margin-top:1rem;">Generated Tags</h3>
+                                <div>
+                                    ${product.tags.map(t => `<span class="metafield-pill">${t}</span>`).join('')}
+                                </div>
                             </div>
-                            <h4>PNS Metafields</h4>
-                            <div style="margin-top: 0.5rem;">
-                                ${product.metafields.map(m => `<span class="metafield-pill" style="background: var(--accent-cyan-dim); color: var(--accent-cyan);">${m}</span>`).join('')}
-                            </div>
+                        </div>
+                        <div class="tab-pane" id="tab-source">
+                            <div class="source-code">&lt;div class="product-description"&gt;
+    &lt;h2&gt;Overview&lt;/h2&gt;
+    &lt;p&gt;${product.aiDesc}&lt;/p&gt;
+    
+    &lt;h2&gt;Key Specs&lt;/h2&gt;
+    &lt;ul&gt;
+${product.metafields.map(m => `        &lt;li&gt;${m}&lt;/li&gt;`).join('\n')}
+    &lt;/ul&gt;
+&lt;/div&gt;</div>
                         </div>
                     </div>
                 </div>
             </div>
         `;
+
+        // Tab logic
+        const tabBtns = productDetailsEl.querySelectorAll('.tab-btn');
+        const tabPanes = productDetailsEl.querySelectorAll('.tab-pane');
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                tabPanes.forEach(p => p.classList.remove('active'));
+                btn.classList.add('active');
+                productDetailsEl.querySelector('#' + btn.getAttribute('data-tab')).classList.add('active');
+            });
+        });
     }
 
     renderProductList();
@@ -137,6 +164,37 @@ document.addEventListener('DOMContentLoaded', () => {
         terminalOutput.scrollTop = terminalOutput.scrollHeight;
     }
 
+    function animateValue(obj, start, end, duration, prefix = '', suffix = '') {
+        let startTimestamp = null;
+        const step = (timestamp) => {
+            if (!startTimestamp) startTimestamp = timestamp;
+            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+            obj.innerHTML = prefix + Math.floor(progress * (end - start) + start).toLocaleString() + suffix;
+            if (progress < 1) {
+                window.requestAnimationFrame(step);
+            }
+        };
+        window.requestAnimationFrame(step);
+    }
+
+    function setStep(stepNum) {
+        document.querySelectorAll('.pipeline-step').forEach((el, idx) => {
+            if (idx + 1 < stepNum) {
+                el.classList.remove('active');
+                el.classList.add('completed');
+            } else if (idx + 1 === stepNum) {
+                el.classList.add('active');
+                el.classList.remove('completed');
+            } else {
+                el.classList.remove('active', 'completed');
+            }
+        });
+        document.querySelectorAll('.pipeline-connector').forEach((el, idx) => {
+            if (idx + 1 < stepNum) el.classList.add('active');
+            else el.classList.remove('active');
+        });
+    }
+
     simForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const supplier = document.getElementById('sim-supplier').value;
@@ -146,6 +204,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btnSubmit.innerHTML = 'Processing...';
 
         terminalOutput.innerHTML = '';
+        setStep(1);
         addLogLine(`Received webhook payload from ${supplier}...`, 'info');
 
         setTimeout(() => {
@@ -153,10 +212,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 600);
 
         setTimeout(() => {
+            setStep(2);
             addLogLine(`Duplicate Scanner running: Dice coefficient comparison against cache.`, 'warning');
         }, 1400);
 
         setTimeout(() => {
+            setStep(3);
             addLogLine(`No duplicates found. Forwarding to AI Copywriting engine...`, 'info');
         }, 2200);
 
@@ -165,22 +226,25 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
 
         setTimeout(() => {
+            setStep(4);
             addLogLine(`Mapping Metafield layout (PNS Namespace color/material/size mapped).`, 'info');
         }, 4000);
 
         setTimeout(() => {
+            setStep(5);
             addLogLine(`Taxonomy matching: Leaf node taxonomy categories selected.`, 'info');
         }, 4800);
 
         setTimeout(() => {
+            setStep(6); // complete all
             addLogLine(`Success! Product "${title}" saved to dashboard database.`, 'success');
             
             // Update stats
             let currentSkus = parseInt(statSkus.innerText.replace(/,/g, ''));
-            statSkus.innerText = (currentSkus + 1).toLocaleString();
+            animateValue(statSkus, currentSkus, currentSkus + 1, 1000);
             
             let currentSavings = parseInt(statSavings.innerText.replace(/[\$,]/g, ''));
-            statSavings.innerText = '$' + (currentSavings + 15).toLocaleString();
+            animateValue(statSavings, currentSavings, currentSavings + 15, 1000, '$');
 
             btnSubmit.disabled = false;
             btnSubmit.innerHTML = `

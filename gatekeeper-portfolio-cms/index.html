@@ -46,6 +46,21 @@
                     <p>Real-time Shopify Automation System Status</p>
                 </header>
 
+                <div class="live-metrics">
+                    <div class="metric">
+                        <span class="metric-label">SYS.LOAD</span>
+                        <span class="metric-value" id="metric-cpu">14%</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">API.LATENCY</span>
+                        <span class="metric-value" id="metric-latency">42ms</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">TOKEN.RATE</span>
+                        <span class="metric-value" id="metric-tokens">850 t/s</span>
+                    </div>
+                </div>
+
                 <div class="stats-grid">
                     <div class="stat-card">
                         <div class="stat-icon emerald">
@@ -139,6 +154,34 @@
                             </button>
                         </form>
                     </div>
+                    <div class="panel processing-panel">
+                        <div class="pipeline-visualizer">
+                            <div class="pipeline-step" id="step-1">
+                                <div class="step-indicator"></div>
+                                <div class="step-label">Ingest</div>
+                            </div>
+                            <div class="pipeline-connector" id="conn-1"></div>
+                            <div class="pipeline-step" id="step-2">
+                                <div class="step-indicator"></div>
+                                <div class="step-label">Dice Scan</div>
+                            </div>
+                            <div class="pipeline-connector" id="conn-2"></div>
+                            <div class="pipeline-step" id="step-3">
+                                <div class="step-indicator"></div>
+                                <div class="step-label">Gemini AI</div>
+                            </div>
+                            <div class="pipeline-connector" id="conn-3"></div>
+                            <div class="pipeline-step" id="step-4">
+                                <div class="step-indicator"></div>
+                                <div class="step-label">PNS Resolver</div>
+                            </div>
+                            <div class="pipeline-connector" id="conn-4"></div>
+                            <div class="pipeline-step" id="step-5">
+                                <div class="step-indicator"></div>
+                                <div class="step-label">API Sync</div>
+                            </div>
+                        </div>
+
                     <div class="panel terminal-panel">
                         <div class="terminal-header">
                             <div class="mac-btns">
@@ -149,6 +192,7 @@
                         <div class="terminal-body" id="terminal-output">
                             <div class="log-line">Waiting for webhook payload...</div>
                         </div>
+                    </div>
                     </div>
                 </div>
             </section>
