@@ -203,7 +203,7 @@ ${product.metafields.map(m => `        &lt;li&gt;${m}&lt;/li&gt;`).join('\n')}
             card.id = prod.id;
             card.innerHTML = `
                 <div class="feed-card-header">
-                    <span class="status-pulse">[PENDING INGESTION]</span>
+                    <span class="status-pulse ${prod.isInjected ? 'injected-badge' : ''}">${prod.isInjected ? '[INJECTED FROM BTN]' : '[PENDING INGESTION]'}</span>
                     <span class="supplier-name">${prod.supplier}</span>
                 </div>
                 <div class="feed-card-body">
@@ -380,6 +380,35 @@ ${product.metafields.map(m => `        &lt;li&gt;${m}&lt;/li&gt;`).join('\n')}
         // Start radar active by default
         document.querySelector('.radar-container').classList.add('active');
     }
+
+    // Supplier Tags Logic
+    const tags = document.querySelectorAll('.tag');
+    tags.forEach(tag => {
+        tag.addEventListener('click', () => {
+            // Toggle active visual state
+            tags.forEach(t => t.classList.remove('active'));
+            tag.classList.add('active');
+
+            // Inject mock webhook
+            const supplierName = tag.innerText;
+            const newProduct = {
+                id: 'pend_inj_' + Date.now() + Math.floor(Math.random() * 1000),
+                supplier: supplierName,
+                title: `Mock Webhook Product (${supplierName})`,
+                rawDesc: `Dynamically injected testing payload for ${supplierName}. Contains simulated raw HTML data.`,
+                tags: ['INJECTED', 'MOCK', 'TEST'],
+                isInjected: true
+            };
+
+            pendingProducts.unshift(newProduct);
+            renderFeed();
+            
+            // Optional: reset active state after a short delay so it behaves like a button click
+            setTimeout(() => {
+                tag.classList.remove('active');
+            }, 600);
+        });
+    });
 
     // Auto-pilot loop
     setInterval(checkAutoPilot, 2000);
