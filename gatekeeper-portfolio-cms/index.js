@@ -146,14 +146,90 @@ ${product.metafields.map(m => `        &lt;li&gt;${m}&lt;/li&gt;`).join('\n')}
 
     renderProductList();
 
-    // Webhook Simulator Logic
-    const simForm = document.getElementById('simulator-form');
+    // Auto-Pilot Simulator Logic
+    const feedGrid = document.getElementById('pending-feed-grid');
     const terminalOutput = document.getElementById('terminal-output');
-    const btnSubmit = simForm.querySelector('button[type="submit"]');
+    const autopilotSwitch = document.getElementById('autopilot-switch');
     
     // Stats elements
     const statSkus = document.getElementById('stat-skus');
     const statSavings = document.getElementById('stat-savings');
+
+    let isProcessing = false;
+    let autoPilotInterval = null;
+
+    let pendingProducts = [
+        {
+            id: 'pend_1',
+            supplier: 'DSers AliExpress',
+            title: 'Waterproof Electric Dog Training Collar',
+            rawDesc: 'NEW 2023 Waterproof dog collar electric shock training... 100% QUALITY',
+            tags: ['SHOCK', 'TRAINING', 'CHEAP']
+        },
+        {
+            id: 'pend_2',
+            supplier: 'Zendrop',
+            title: 'Orthopedic Pet Bed Calming Sofa',
+            rawDesc: 'Super soft plush dog bed cat bed orthopedic deep sleep winter warm...',
+            tags: ['WARM', 'CALMING', 'SOFA']
+        },
+        {
+            id: 'pend_3',
+            supplier: 'CJ Dropshipping',
+            title: 'Cat Laser Toy Interactive Chase',
+            rawDesc: 'Automatic cat toy laser smart interactive pet toy usb charging...',
+            tags: ['SMART', 'LASER', 'USB']
+        },
+        {
+            id: 'pend_4',
+            supplier: 'AutoDS',
+            title: 'Adjustable Posture Corrector',
+            rawDesc: 'Back posture corrector shoulder lumbar brace spine support belt...',
+            tags: ['BACK', 'CORRECTOR', 'BELT']
+        }
+    ];
+
+    function renderFeed() {
+        if (!feedGrid) return;
+        feedGrid.innerHTML = '';
+        if (pendingProducts.length === 0) {
+            feedGrid.innerHTML = '<div class="empty-feed">Queue Empty - Waiting for Payloads...</div>';
+            return;
+        }
+        
+        pendingProducts.forEach(prod => {
+            const card = document.createElement('div');
+            card.className = 'feed-card';
+            card.id = prod.id;
+            card.innerHTML = `
+                <div class="feed-card-header">
+                    <span class="status-pulse">[PENDING INGESTION]</span>
+                    <span class="supplier-name">${prod.supplier}</span>
+                </div>
+                <div class="feed-card-body">
+                    <h4 class="raw-title">${prod.title}</h4>
+                    <p class="raw-preview">${prod.rawDesc}</p>
+                    <div class="spam-tags">
+                        ${prod.tags.map(t => `<span class="spam-tag">${t}</span>`).join('')}
+                    </div>
+                </div>
+                <div class="feed-card-footer">
+                    <button class="btn btn-secondary btn-sm trigger-btn" data-id="${prod.id}">Trigger Automation</button>
+                </div>
+            `;
+            feedGrid.appendChild(card);
+        });
+
+        // Add manual trigger listeners
+        feedGrid.querySelectorAll('.trigger-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const id = e.target.getAttribute('data-id');
+                if (!isProcessing) {
+                    processProductFromQueue(id);
+                }
+            });
+        });
+    }
 
     function addLogLine(text, type = 'info') {
         const time = new Date().toLocaleTimeString('en-US', { hour12: false });
@@ -195,17 +271,29 @@ ${product.metafields.map(m => `        &lt;li&gt;${m}&lt;/li&gt;`).join('\n')}
         });
     }
 
-    simForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const supplier = document.getElementById('sim-supplier').value;
-        const title = document.getElementById('sim-title').value;
-
-        btnSubmit.disabled = true;
-        btnSubmit.innerHTML = 'Processing...';
+    function processProductFromQueue(id) {
+        if (isProcessing) return;
+        
+        const index = pendingProducts.findIndex(p => p.id === id);
+        if (index === -1) return;
+        
+        const prod = pendingProducts[index];
+        isProcessing = true;
+        
+        // Visual indicator on card
+        const cardEl = document.getElementById(prod.id);
+        if (cardEl) {
+            cardEl.classList.add('processing');
+            const pulse = cardEl.querySelector('.status-pulse');
+            if(pulse) {
+                pulse.innerText = '[INGESTING...]';
+                pulse.style.color = 'var(--accent-cyan)';
+            }
+        }
 
         terminalOutput.innerHTML = '';
         setStep(1);
-        addLogLine(`Received webhook payload from ${supplier}...`, 'info');
+        addLogLine(`Received webhook payload from ${prod.supplier}...`, 'info');
 
         setTimeout(() => {
             addLogLine(`Authentication successful. Validating payload signature.`, 'info');
@@ -237,7 +325,7 @@ ${product.metafields.map(m => `        &lt;li&gt;${m}&lt;/li&gt;`).join('\n')}
 
         setTimeout(() => {
             setStep(6); // complete all
-            addLogLine(`Success! Product "${title}" saved to dashboard database.`, 'success');
+            addLogLine(`Success! Product "${prod.title}" saved to dashboard database.`, 'success');
             
             // Update stats
             let currentSkus = parseInt(statSkus.innerText.replace(/,/g, ''));
@@ -246,28 +334,54 @@ ${product.metafields.map(m => `        &lt;li&gt;${m}&lt;/li&gt;`).join('\n')}
             let currentSavings = parseInt(statSavings.innerText.replace(/[\$,]/g, ''));
             animateValue(statSavings, currentSavings, currentSavings + 15, 1000, '$');
 
-            btnSubmit.disabled = false;
-            btnSubmit.innerHTML = `
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polygon points="5 3 19 12 5 21 5 3"/>
-                </svg>
-                Process Product
-            `;
-
-            // Optionally add to catalog mock
+            // Remove from pending
+            pendingProducts.splice(index, 1);
+            
+            // Add to catalog mock
             const newProduct = {
                 id: 'prod_' + Date.now(),
-                title: title,
-                supplier: supplier,
-                rawDesc: document.getElementById('sim-desc').value,
+                title: prod.title + ' (Optimized)',
+                supplier: prod.supplier,
+                rawDesc: prod.rawDesc,
                 aiDesc: 'AI Generated Description based on raw input. Optimized for high conversion and readability.',
                 tags: ['New Arrival', 'Automated'],
                 metafields: ['Status: Active', 'Sync: Complete']
             };
             mockProducts.unshift(newProduct);
+            
+            // Re-render
+            renderFeed();
             renderProductList();
-
+            
+            isProcessing = false;
         }, 5800);
-    });
+    }
+
+    function checkAutoPilot() {
+        if (autopilotSwitch && autopilotSwitch.checked && !isProcessing && pendingProducts.length > 0) {
+            processProductFromQueue(pendingProducts[0].id);
+        }
+    }
+
+    // Initialize
+    renderFeed();
+    
+    // Auto-pilot toggle listener
+    if (autopilotSwitch) {
+        autopilotSwitch.addEventListener('change', (e) => {
+            const container = document.querySelector('.radar-container');
+            if (e.target.checked) {
+                container.classList.add('active');
+            } else {
+                container.classList.remove('active');
+            }
+        });
+        
+        // Start radar active by default
+        document.querySelector('.radar-container').classList.add('active');
+    }
+
+    // Auto-pilot loop
+    setInterval(checkAutoPilot, 2000);
 
 });
