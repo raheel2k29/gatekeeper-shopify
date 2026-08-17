@@ -621,4 +621,87 @@ ${product.metafields.map(m => `        &lt;li&gt;${m}&lt;/li&gt;`).join('\n')}
         }, 1800);
     }
 
+    // WordPress Integration Logic
+    const wpTerminal = document.getElementById('wp-terminal-output');
+    const syncWooBtn = document.getElementById('btn-sync-woo');
+    
+    function addWpLog(text, type='info') {
+        const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+        const line = document.createElement('div');
+        line.className = 'log-line';
+        line.innerHTML = `<span class="time">[${time}]</span> <span class="${type}">${text}</span>`;
+        if(wpTerminal) {
+            wpTerminal.appendChild(line);
+            wpTerminal.scrollTop = wpTerminal.scrollHeight;
+        }
+    }
+    
+    let selectedWpProd = null;
+    document.querySelectorAll('.wp-trigger-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            selectedWpProd = e.target.getAttribute('data-wp-prod');
+            addWpLog(`Selected mock product: ${selectedWpProd}`, 'info');
+        });
+    });
+    
+    if(syncWooBtn) {
+        syncWooBtn.addEventListener('click', () => {
+            if(!selectedWpProd) {
+                addWpLog(`No product selected. Please select a mock product first.`, 'warning');
+                return;
+            }
+            const wpStatusSelect = document.getElementById('wp-status-select');
+            const wpStatus = wpStatusSelect ? wpStatusSelect.value : 'Publish';
+            syncWooBtn.disabled = true;
+            addWpLog(`Connecting to WooCommerce REST API v3...`, 'info');
+            setTimeout(() => addWpLog(`Verifying SSL & Consumer Key...`, 'info'), 800);
+            setTimeout(() => addWpLog(`Mapping product attributes to WooCommerce custom taxonomies...`, 'info'), 1600);
+            setTimeout(() => addWpLog(`Uploading product images to WP Media Library...`, 'info'), 2500);
+            setTimeout(() => {
+                const randId = Math.floor(Math.random() * 1000) + 2000;
+                addWpLog(`Success! Product ID #${randId} ("${selectedWpProd}") active on WordPress catalog. Status: ${wpStatus}.`, 'success');
+                syncWooBtn.disabled = false;
+            }, 3500);
+        });
+    }
+
+    // Multistore Sync Logic
+    document.querySelectorAll('.markup-slider').forEach(slider => {
+        slider.addEventListener('input', (e) => {
+            const targetId = e.target.getAttribute('data-target');
+            const targetEl = document.getElementById(targetId);
+            if(targetEl) {
+                targetEl.innerText = `+${e.target.value}% markup`;
+            }
+        });
+    });
+
+    const mockSyncBtn = document.getElementById('btn-mock-sync');
+    const syncFeed = document.getElementById('multistore-sync-feed');
+    const items = ['Dog Collar Black M', 'Waterproof Harness', 'Pet Grooming Kit', 'LED Laser Pointer', 'Orthopedic Pet Bed'];
+    const stores = ['EU Paws Boutique', 'US Pet Outlet', 'Paws N Shades Canada'];
+    
+    if(mockSyncBtn && syncFeed) {
+        mockSyncBtn.addEventListener('click', () => {
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+            const item = items[Math.floor(Math.random()*items.length)];
+            const store = stores[Math.floor(Math.random()*stores.length)];
+            const isPrice = Math.random() > 0.5;
+            
+            const line = document.createElement('div');
+            if(isPrice) {
+                const price = (Math.random() * 40 + 10).toFixed(2);
+                line.style.marginBottom = '0.5rem';
+                line.style.color = 'var(--accent-cyan)';
+                line.innerText = `[${time}] Replicated '${item}' price ($${price}) to ${store}.`;
+            } else {
+                const stock = Math.floor(Math.random() * 50 + 5);
+                line.style.marginBottom = '0.5rem';
+                line.style.color = 'var(--text-main)';
+                line.innerText = `[${time}] Replicated '${item}' stock (${stock} units) to ${store}.`;
+            }
+            syncFeed.insertBefore(line, syncFeed.firstChild);
+        });
+    }
+
 });

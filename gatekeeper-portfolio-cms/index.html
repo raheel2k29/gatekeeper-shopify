@@ -44,6 +44,21 @@
                     </svg>
                     Settings
                 </li>
+                <li data-target="wordpress">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+                        <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+                        <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+                    </svg>
+                    WordPress Integration
+                </li>
+                <li data-target="multistore">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="2" y="2" width="16" height="16" rx="2" ry="2"></rect>
+                        <path d="M22 6L22 22 6 22"></path>
+                    </svg>
+                    Multistore Sync
+                </li>
             </ul>
         </nav>
 
@@ -460,6 +475,171 @@
                     </div>
                 </div>
 
+            </section>
+            <!-- WordPress Integration Section -->
+            <section id="wordpress" class="view-section">
+                <header class="section-header">
+                    <h1>WordPress & WooCommerce Ingestion Node</h1>
+                    <p>Synergize dropship catalog mappings to WooCommerce REST API endpoints.</p>
+                </header>
+
+                <div class="webhook-simulator">
+                    <div class="panel feed-panel" style="flex: 1;">
+                        <div class="feed-header">
+                            <div>
+                                <h2>WooCommerce Ingestion Playground</h2>
+                                <span class="subtitle-text">Interactive Webhook Simulator</span>
+                            </div>
+                        </div>
+                        <div class="wp-queues" style="margin-top: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                            <button class="btn btn-secondary wp-trigger-btn" data-wp-prod="WooCommerce Pet Grooming Kit">Mock: WooCommerce Pet Grooming Kit</button>
+                            <button class="btn btn-secondary wp-trigger-btn" data-wp-prod="Classic Dog Leash WooCommerce">Mock: Classic Dog Leash WooCommerce</button>
+                        </div>
+                        
+                        <div class="wp-settings" style="margin-top: 2rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+                            <h3>WooCommerce Settings</h3>
+                            <div style="margin-top: 1rem;">
+                                <label style="font-size: 0.8rem; color: var(--text-dim); display:block; margin-bottom: 0.3rem;">WooCommerce Consumer Key</label>
+                                <input type="password" value="ck_55486a454d45548f4" style="width: 100%; padding: 0.5rem; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px;">
+                            </div>
+                            <div style="margin-top: 1rem;">
+                                <label style="font-size: 0.8rem; color: var(--text-dim); display:block; margin-bottom: 0.3rem;">Default Product Status</label>
+                                <select style="width: 100%; padding: 0.5rem; background: var(--bg-main); border: 1px solid var(--border-color); color: var(--text-main); border-radius: 4px;" id="wp-status-select">
+                                    <option value="Publish">Publish</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Draft">Draft</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary" id="btn-sync-woo" style="margin-top: 1rem; width: 100%;">Sync to WooCommerce</button>
+                        </div>
+                    </div>
+                    <div class="panel terminal-panel" style="flex: 1;">
+                        <div class="terminal-header">
+                            <div class="mac-btns"><span></span><span></span><span></span></div>
+                            <div class="terminal-title">woocommerce-sync.log</div>
+                        </div>
+                        <div class="terminal-body" id="wp-terminal-output" style="height: 400px; overflow-y: auto;">
+                            <div class="log-line">Idle. Waiting for sync trigger...</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Multistore Sync Section -->
+            <section id="multistore" class="view-section">
+                <header class="section-header">
+                    <h1>Shopify Multistore Sync & Inventory Replicator</h1>
+                    <p>Sync product changes, inventory stock levels, and metadata across multiple Shopify stores on autopilot.</p>
+                </header>
+
+                <div class="multistore-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2rem;">
+                    <!-- US Store -->
+                    <div class="store-card" style="background: var(--bg-card); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <h3 style="margin-top: 0; display: flex; align-items: center; justify-content: space-between;">US Pet Outlet <span class="pulse-dot" style="background: var(--accent-cyan); width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span></h3>
+                        
+                        <div class="setting-item" style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9rem;">Inventory Sync</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item" style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9rem;">Metafield Replication</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item" style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9rem;">Pricing Rules</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <label style="font-size: 0.8rem; color: var(--text-dim); display:block; margin-bottom: 0.3rem;">Markup Rule</label>
+                            <input type="range" min="0" max="100" value="20" class="markup-slider" data-target="us-markup" style="width:100%">
+                            <div style="font-size: 0.8rem; text-align: right; margin-top: 0.2rem;" id="us-markup">+20% markup</div>
+                        </div>
+                    </div>
+                    
+                    <!-- EU Store -->
+                    <div class="store-card" style="background: var(--bg-card); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <h3 style="margin-top: 0; display: flex; align-items: center; justify-content: space-between;">EU Paws Boutique <span class="pulse-dot" style="background: var(--accent-cyan); width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span></h3>
+                        
+                        <div class="setting-item" style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9rem;">Inventory Sync</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item" style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9rem;">Metafield Replication</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item" style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9rem;">Pricing Rules</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <label style="font-size: 0.8rem; color: var(--text-dim); display:block; margin-bottom: 0.3rem;">Markup Rule</label>
+                            <input type="range" min="0" max="100" value="15" class="markup-slider" data-target="eu-markup" style="width:100%">
+                            <div style="font-size: 0.8rem; text-align: right; margin-top: 0.2rem;" id="eu-markup">+15% markup</div>
+                        </div>
+                    </div>
+
+                    <!-- Canada Store -->
+                    <div class="store-card" style="background: var(--bg-card); padding: 1.5rem; border-radius: 8px; border: 1px solid var(--border-color);">
+                        <h3 style="margin-top: 0; display: flex; align-items: center; justify-content: space-between;">Paws N Shades Canada <span class="pulse-dot" style="background: var(--accent-cyan); width: 8px; height: 8px; border-radius: 50%; display: inline-block;"></span></h3>
+                        
+                        <div class="setting-item" style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9rem;">Inventory Sync</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item" style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9rem;">Metafield Replication</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div class="setting-item" style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.9rem;">Pricing Rules</span>
+                            <label class="toggle-switch">
+                                <input type="checkbox" checked>
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                        <div style="margin-top: 1rem;">
+                            <label style="font-size: 0.8rem; color: var(--text-dim); display:block; margin-bottom: 0.3rem;">Markup Rule</label>
+                            <input type="range" min="0" max="100" value="35" class="markup-slider" data-target="ca-markup" style="width:100%">
+                            <div style="font-size: 0.8rem; text-align: right; margin-top: 0.2rem;" id="ca-markup">+35% markup</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="sync-event-tracker" style="background: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden;">
+                    <div style="padding: 1rem 1.5rem; background: var(--bg-card); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+                        <h3 style="margin: 0; font-size: 1rem;">Sync Event Tracker Feed</h3>
+                        <button class="btn btn-secondary btn-sm" id="btn-mock-sync" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Trigger Mock Sync</button>
+                    </div>
+                    <div id="multistore-sync-feed" style="padding: 1rem; height: 200px; overflow-y: auto; font-family: monospace; font-size: 0.9rem; color: var(--text-dim);">
+                        <div style="margin-bottom: 0.5rem; color: var(--text-main);">[10:04:12] Replicated 'Dog Collar Black M' stock (12 units) to EU Paws Boutique.</div>
+                        <div style="margin-bottom: 0.5rem; color: var(--accent-cyan);">[10:02:15] Replicated 'Waterproof Harness' price ($34.99) to US Pet Outlet.</div>
+                    </div>
+                </div>
             </section>
         </main>
     </div>
