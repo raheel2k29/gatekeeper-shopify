@@ -1050,3 +1050,165 @@ input:checked + .slider:before {
     white-space: pre-wrap;
     font-size: 0.85rem;
 }
+
+/* Fulfillment Routing Manager */
+.settings-full-card {
+    background-color: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 2rem;
+    margin-top: 2rem;
+}
+.settings-full-card h2 { margin-bottom: 0.5rem; font-size: 1.25rem; }
+.settings-full-card .desc { color: var(--text-muted); margin-bottom: 2rem; }
+
+.routing-manager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+
+.routing-map {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+}
+.routing-map h3 { color: var(--accent-cyan); font-size: 1rem; margin-bottom: 1.5rem; }
+
+.map-path {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.node {
+    background: var(--bg-dark);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 1rem;
+    width: 100%;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+}
+
+.node.customer-node {
+    border-color: var(--accent-emerald);
+    box-shadow: 0 0 10px var(--accent-emerald-dim);
+}
+
+.node.supplier-node {
+    border-color: var(--border-color);
+    transition: all 0.3s;
+}
+
+.node.supplier-node:hover {
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 15px var(--accent-cyan-dim);
+}
+
+.node-icon { font-size: 1.5rem; margin-bottom: 0.25rem; }
+.node-label { font-weight: 600; color: var(--text-main); }
+.node-badge { 
+    position: absolute; 
+    top: -10px; 
+    left: 50%; 
+    transform: translateX(-50%);
+    background: var(--accent-cyan-dim);
+    color: var(--accent-cyan);
+    padding: 0.15rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    border: 1px solid var(--accent-cyan);
+}
+.node-badge.failsafe-badge {
+    background: var(--accent-warning-dim);
+    color: var(--accent-warning);
+    border-color: var(--accent-warning);
+}
+
+.node-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 0.25rem; color: var(--text-main); }
+.node-sub { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem; }
+
+.margin-input {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-color);
+    color: var(--accent-highlight);
+    padding: 0.4rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    text-align: center;
+    width: 60%;
+    margin: 0 auto;
+    font-family: monospace;
+    display: block;
+}
+.margin-input:focus {
+    outline: none;
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 5px var(--accent-cyan-dim);
+}
+
+.path-connector {
+    width: 2px;
+    height: 30px;
+    background-color: var(--border-color);
+    position: relative;
+}
+.path-connector.active {
+    background-color: var(--accent-emerald);
+    box-shadow: 0 0 8px var(--accent-emerald);
+}
+.path-connector::after {
+    content: '▼';
+    position: absolute;
+    bottom: -8px;
+    left: -4px;
+    color: var(--border-color);
+    font-size: 0.6rem;
+}
+.path-connector.active::after {
+    color: var(--accent-emerald);
+}
+
+.fulfillment-terminal {
+    background-color: #0d1117;
+    border-radius: 8px;
+    border: 1px solid #30363d;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.fulfillment-terminal .terminal-header {
+    background-color: #161b22;
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #30363d;
+}
+
+.fulfillment-terminal .status-indicator {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--accent-emerald);
+    font-family: monospace;
+    font-weight: bold;
+}
+
+.fulfillment-terminal .pulse-dot {
+    width: 8px;
+    height: 8px;
+    background-color: var(--accent-emerald);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--accent-emerald);
+    animation: pulse 1s infinite alternate;
+}

@@ -516,4 +516,50 @@ ${product.metafields.map(m => `        &lt;li&gt;${m}&lt;/li&gt;`).join('\n')}
     // Auto-pilot loop
     setInterval(checkAutoPilot, 2000);
 
+    // Fulfillment Sync Logs Loop
+    const fulfillmentTerminal = document.getElementById('fulfillment-log-output');
+    if (fulfillmentTerminal) {
+        const orderLogs = [
+            ["Order #1024 synced to TopDawg API... [Checking stock...]", "info"],
+            ["TopDawg SKU out of stock. Triggering Priority 2 Routing...", "warning"],
+            ["CJ Dropshipping API connected... [Order submitted successfully]", "success"],
+            ["Tracking ID synced to customer email.", "success"],
+            ["Order #1025 synced to TopDawg API... [Checking stock...]", "info"],
+            ["TopDawg SKU verified. US Warehouse matched.", "success"],
+            ["Order submitted to TopDawg... [Awaiting tracking]", "info"],
+            ["Order #1026 received. Mapping SKU across priority chain...", "info"],
+            ["Priority 1 (TopDawg) fails. Priority 2 (CJ) fails. Triggering Zendrop (Failsafe)...", "warning"],
+            ["Zendrop API connected... [Order submitted via Failsafe]", "success"]
+        ];
+        
+        let logIndex = 0;
+        let orderNumber = 1027;
+        
+        setInterval(() => {
+            let [text, type] = orderLogs[logIndex];
+            
+            // Randomize order numbers slightly for realism on loop
+            if (logIndex === 0) text = `Order #${orderNumber} synced to TopDawg API... [Checking stock...]`;
+            if (logIndex === 4) text = `Order #${orderNumber+1} synced to TopDawg API... [Checking stock...]`;
+            if (logIndex === 7) text = `Order #${orderNumber+2} received. Mapping SKU across priority chain...`;
+            
+            if (logIndex === 9) orderNumber += 3; // increment for next batch
+
+            const time = new Date().toLocaleTimeString('en-US', { hour12: false });
+            const line = document.createElement('div');
+            line.className = 'log-line';
+            line.innerHTML = `<span class="time">[${time}]</span> <span class="${type}">${text}</span>`;
+            
+            fulfillmentTerminal.appendChild(line);
+            fulfillmentTerminal.scrollTop = fulfillmentTerminal.scrollHeight;
+            
+            // Prevent terminal from filling up infinitely
+            if (fulfillmentTerminal.children.length > 50) {
+                fulfillmentTerminal.removeChild(fulfillmentTerminal.firstChild);
+            }
+            
+            logIndex = (logIndex + 1) % orderLogs.length;
+        }, 1800);
+    }
+
 });

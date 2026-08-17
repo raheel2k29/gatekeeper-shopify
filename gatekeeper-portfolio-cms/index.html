@@ -289,6 +289,57 @@
                         <button class="btn btn-secondary mt-1">Add Mapping</button>
                     </div>
                 </div>
+
+                <div class="settings-full-card mt-2">
+                    <h2>Supplier Sync & Priority Order Routing</h2>
+                    <p class="desc">Configure margin thresholds and real-time order routing paths.</p>
+                    
+                    <div class="routing-manager">
+                        <div class="routing-map">
+                            <h3>Supply Chain Priority Map</h3>
+                            <div class="map-path">
+                                <div class="node customer-node">
+                                    <div class="node-icon">🛒</div>
+                                    <div class="node-label">Customer Order</div>
+                                </div>
+                                <div class="path-connector active"></div>
+                                <div class="node supplier-node priority-1">
+                                    <div class="node-badge">Priority 1</div>
+                                    <div class="node-title">TopDawg</div>
+                                    <div class="node-sub">US Stock Only</div>
+                                    <input type="text" class="margin-input" value="Min Margin: 25%">
+                                </div>
+                                <div class="path-connector"></div>
+                                <div class="node supplier-node priority-2">
+                                    <div class="node-badge">Priority 2</div>
+                                    <div class="node-title">CJ Dropshipping</div>
+                                    <div class="node-sub">Global Stock</div>
+                                    <input type="text" class="margin-input" value="Min Margin: 30%">
+                                </div>
+                                <div class="path-connector"></div>
+                                <div class="node supplier-node priority-3 failsafe">
+                                    <div class="node-badge failsafe-badge">Priority 3 (Failsafe)</div>
+                                    <div class="node-title">Zendrop</div>
+                                    <div class="node-sub">Auto-AliExpress</div>
+                                    <input type="text" class="margin-input" value="Min Margin: 15%">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="fulfillment-terminal">
+                            <div class="terminal-header">
+                                <div class="mac-btns"><span></span><span></span><span></span></div>
+                                <div class="terminal-title">live-fulfillment-sync.log</div>
+                                <div class="status-indicator">
+                                    <span class="pulse-dot"></span> SYNCING
+                                </div>
+                            </div>
+                            <div class="terminal-body" id="fulfillment-log-output">
+                                <!-- Populated by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </section>
         </main>
     </div>
